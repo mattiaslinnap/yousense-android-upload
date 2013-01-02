@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
+import android.util.Log;
 import org.yousense.upload.exceptions.ConfigurationException;
 import org.yousense.upload.exceptions.ServerUnhappyException;
 import org.yousense.upload.net.FileRequest;
@@ -54,11 +55,11 @@ public class UploadService extends IntentService {
                 }
             }
         } catch (IOException e) {
-            // TODO: handle errors
+            Log.e(TAG, "IOException", e);
         } catch (ConfigurationException e) {
-            // TODO: handle errors
+            Log.e(TAG, "ConfigurationException", e);
         } catch (ServerUnhappyException e) {
-            // TODO: handle errors
+            Log.e(TAG, "ServerUnhappyException", e);
         } finally {
             status = Status.IDLE;
         }

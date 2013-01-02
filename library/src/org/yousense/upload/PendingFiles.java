@@ -11,17 +11,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class PendingFiles {
-    /**
-     * Returns a hex string of the SHA1 hash of the file contents.
-     */
-    public static String fileSha1Hex(File file) throws IOException {
-        FileInputStream fis = FileUtils.openInputStream(file);
-        try {
-            return DigestUtils.sha1Hex(fis);
-        } finally {
-            fis.close();
-        }
-    }
 
     /**
      * Copies a file to the pending files directory, queueing it for upload.
@@ -29,11 +18,11 @@ public class PendingFiles {
      */
     public static void copyFileForUpload(Context context, File original) throws IOException {
         // TODO: check file exists and is readable for better error messaging.
-        String sha1 = fileSha1Hex(original);
+        String sha1 = Utils.fileSha1Hex(original);
         File tempFile = new File(getDirectory(context, true), original.getName());
         try {
             FileUtils.copyFile(original, tempFile);
-            if (!fileSha1Hex(tempFile).equals(sha1))
+            if (!Utils.fileSha1Hex(tempFile).equals(sha1))
                 throw new IOException("SHA1 mismatch after copy");
             FileUtils.moveFileToDirectory(tempFile, getDirectory(context, false), false);
         } catch (IOException e) {
@@ -42,12 +31,12 @@ public class PendingFiles {
         }
     }
 
-    static File[] sortedPendingFiles(Context context) throws IOException {
+    public static File[] sortedPendingFiles(Context context) throws IOException {
         File dir = getDirectory(context, false);
         File[] files = dir.listFiles();
         if (files == null)
             throw new IOException("File.listFiles returned null, maybe not directory: " + dir.getAbsolutePath());
-        Arrays.sort(files, new SortedByAbsolutePath());
+        Arrays.sort(files, new SortedByName());
         return files;
     }
 
@@ -75,10 +64,10 @@ public class PendingFiles {
         return dir;
     }
 
-    private static class SortedByAbsolutePath implements Comparator<File> {
+    private static class SortedByName implements Comparator<File> {
         @Override
         public int compare(File lhs, File rhs) {
-            return lhs.getAbsolutePath().compareTo(rhs.getAbsolutePath());
+            return lhs.getName().compareTo(rhs.getName());
         }
     }
 }

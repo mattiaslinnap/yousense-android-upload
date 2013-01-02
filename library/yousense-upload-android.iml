@@ -41,7 +41,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/libs/gson-2.2.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/libs/commons-codec-1.7.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -59,7 +59,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/libs/commons-codec-1.7.jar!/" />
+          <root url="jar://$MODULE_DIR$/libs/gson-2.2.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

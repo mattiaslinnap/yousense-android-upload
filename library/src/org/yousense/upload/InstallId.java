@@ -62,6 +62,6 @@ public class InstallId {
             androidId = "0000000000000000";
         byte[] random = new byte[INSTALL_ID_RANDOM_LENGTH / 2];
         new SecureRandom().nextBytes(random);
-        return (androidId + Hex.encodeHexString(random)).toLowerCase();
+        return (androidId + new String(Hex.encodeHex(random))).toLowerCase();
     }
 }
