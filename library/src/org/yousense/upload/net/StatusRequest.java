@@ -1,22 +1,21 @@
-package org.yousense.upload.org.yousense.upload.net;
+package org.yousense.upload.net;
 
 import android.content.Context;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.yousense.upload.AppId;
 import org.yousense.upload.InstallId;
-import org.yousense.upload.ManifestException;
+import org.yousense.upload.exceptions.ConfigurationException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 
 public class StatusRequest extends BaseRequest {
 
     StatusData status;
 
-    public StatusRequest(Context context, File[] pendingFiles) throws MalformedURLException, ManifestException {
+    public StatusRequest(Context context, File[] pendingFiles) throws ConfigurationException {
         super(context, String.format("%d/status/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), InstallId.getInstallId(context)));
         status = new StatusData(pendingFiles);
     }

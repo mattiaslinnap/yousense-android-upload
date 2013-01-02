@@ -1,22 +1,21 @@
-package org.yousense.upload.org.yousense.upload.net;
+package org.yousense.upload.net;
 
 import android.content.Context;
 import org.apache.commons.io.FileUtils;
 import org.yousense.upload.AppId;
 import org.yousense.upload.InstallId;
-import org.yousense.upload.ManifestException;
+import org.yousense.upload.exceptions.ConfigurationException;
 import org.yousense.upload.PendingFiles;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 
 public class FileRequest extends BaseRequest {
 
     File upload;
 
-    public FileRequest(Context context, File upload) throws MalformedURLException, ManifestException {
+    public FileRequest(Context context, File upload) throws ConfigurationException {
         super(context, String.format("%d/file/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), InstallId.getInstallId(context)));
         this.upload = upload;
     }

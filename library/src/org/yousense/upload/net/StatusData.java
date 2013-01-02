@@ -1,4 +1,4 @@
-package org.yousense.upload.org.yousense.upload.net;
+package org.yousense.upload.net;
 
 import java.io.File;
 

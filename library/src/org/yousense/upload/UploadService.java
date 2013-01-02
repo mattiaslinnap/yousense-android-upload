@@ -7,9 +7,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
-import org.yousense.upload.org.yousense.upload.net.FileRequest;
-import org.yousense.upload.org.yousense.upload.net.StatusRequest;
-import org.yousense.upload.org.yousense.upload.net.UploadException;
+import org.yousense.upload.exceptions.ConfigurationException;
+import org.yousense.upload.exceptions.ServerUnhappyException;
+import org.yousense.upload.net.FileRequest;
+import org.yousense.upload.net.StatusRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,37 +55,12 @@ public class UploadService extends IntentService {
             }
         } catch (IOException e) {
             // TODO: handle errors
-            // TODO: distinguish bad URLs and other IO errors
-        } catch (UploadException e) {
+        } catch (ConfigurationException e) {
             // TODO: handle errors
-        } catch (ManifestException e) {
+        } catch (ServerUnhappyException e) {
             // TODO: handle errors
         } finally {
             status = Status.IDLE;
-        }
-    }
-
-    public static URL baseUrlFromAndroidManifest(Context context) throws ManifestException {
-        try {
-            ComponentName myself = new ComponentName(context, UploadService.class);
-            ServiceInfo info = context.getPackageManager().getServiceInfo(myself, PackageManager.GET_META_DATA);
-            if (info == null)
-                throw new ManifestException("Could not read Service info from AndroidManifest.xml.");
-            Bundle metadata = info.metaData;
-            if (metadata == null)
-                throw new ManifestException("Could not find Service meta-data in AndroidManifest.xml.");
-            String baseUrl = metadata.getString("base_url");
-            if (baseUrl == null)
-                throw new ManifestException("Could not find Service meta-data with name base_url in AndroidManifest.xml.");
-            // Test that URL is valid before the first request is made.
-            if (baseUrl.endsWith("/"))
-                throw new ManifestException("Service base_url in AndroidManifest.xml must not end with a \"/\".");
-            URL url = new URL(baseUrl);
-            return url;
-        } catch (PackageManager.NameNotFoundException e) {
-            throw new ManifestException("Could not find Service in AndroidManifest.xml.", e);
-        } catch (MalformedURLException e) {
-            throw new ManifestException("Service base_url in AndroidManifest.xml is not a valid URL.", e);
         }
     }
 }
