@@ -4,7 +4,7 @@ import android.content.Context;
 import org.apache.commons.io.FileUtils;
 import org.yousense.upload.AppId;
 import org.yousense.upload.InstallId;
-import org.yousense.upload.Utils;
+import org.yousense.upload.UploadFolder;
 import org.yousense.upload.exceptions.ConfigurationException;
 
 import java.io.File;
@@ -27,9 +27,11 @@ public class FileRequest extends BaseRequest {
         connection.setFixedLengthStreamingMode((int) upload.length());
         connection.setRequestProperty("Name", upload.getName());
         connection.setRequestProperty("Size", "" + upload.length());
-        connection.setRequestProperty("Sha1", Utils.fileSha1Hex(upload));
+        connection.setRequestProperty("Sha1", UploadFolder.sha1Hex(upload));
 
         // Write file into POST request
         FileUtils.copyFile(upload, connection.getOutputStream());
     }
+
+
 }

@@ -1,12 +1,8 @@
 package org.yousense.upload;
 
 import android.app.IntentService;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ServiceInfo;
-import android.os.Bundle;
 import android.util.Log;
 import org.yousense.upload.exceptions.ConfigurationException;
 import org.yousense.upload.exceptions.ServerUnhappyException;
@@ -15,8 +11,6 @@ import org.yousense.upload.net.StatusRequest;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class UploadService extends IntentService {
     public static final String TAG = "yousense-upload";
@@ -46,7 +40,7 @@ public class UploadService extends IntentService {
             status = Status.UPLOADING;
 
             if (ACTION_UPLOAD.equals(intent.getAction())) {
-                File[] pending = PendingFiles.sortedPendingFiles(this);
+                File[] pending = UploadFolder.sortedPendingFiles(this);
                 new StatusRequest(this, pending).run();
 
                 for (File file : pending) {

@@ -1,6 +1,7 @@
 package org.yousense.upload;
 
 import android.content.Context;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 
@@ -10,7 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class PendingFiles {
+public class UploadFolder {
 
     /**
      * Copies a file to the pending files directory, queueing it for upload.
@@ -18,12 +19,14 @@ public class PendingFiles {
      */
     public static void copyFileForUpload(Context context, File original) throws IOException {
         // TODO: check file exists and is readable for better error messaging.
-        String sha1 = Utils.fileSha1Hex(original);
+        String sha1 = sha1Hex(original);
         File tempFile = new File(getDirectory(context, true), original.getName());
         try {
+            // Copy file to the same filesystem to enable atomic moves.
             FileUtils.copyFile(original, tempFile);
-            if (!Utils.fileSha1Hex(tempFile).equals(sha1))
+            if (!sha1Hex(tempFile).equals(sha1))
                 throw new IOException("SHA1 mismatch after copy");
+            // Atomic move into the upload directory to avoid race conditions on writing files.
             FileUtils.moveFileToDirectory(tempFile, getDirectory(context, false), false);
         } catch (IOException e) {
             tempFile.delete();
@@ -68,6 +71,20 @@ public class PendingFiles {
         @Override
         public int compare(File lhs, File rhs) {
             return lhs.getName().compareTo(rhs.getName());
+        }
+    }
+
+    /**
+     * Returns a hex string of the SHA1 hash of the file contents.
+     */
+    public static String sha1Hex(File file) throws IOException {
+        FileInputStream fis = FileUtils.openInputStream(file);
+        try {
+            // Workaround for http://stackoverflow.com/questions/9126567/method-not-found-using-digestutils-in-android
+            // Apache Commons Codec library conflicts with the Android-shipped version, and somehow the sha1Hex function breaks.
+            return new String(Hex.encodeHex(DigestUtils.sha1(fis))).toLowerCase();
+        } finally {
+            fis.close();
         }
     }
 }
