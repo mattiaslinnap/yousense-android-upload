@@ -16,7 +16,7 @@ public class FileRequest extends BaseRequest {
     File upload;
 
     public FileRequest(Context context, File upload) throws ConfigurationException {
-        super(context, String.format("%d/file/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), InstallId.getInstallId(context)));
+        super(context, String.format("%d/file/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), InstallId.installId(context)));
         this.upload = upload;
     }
 

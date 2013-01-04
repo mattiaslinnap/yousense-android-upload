@@ -15,7 +15,7 @@ public class AppId {
 		return context.getPackageName();
 	}
 	
-	public static int appVersionCode(Context context) {        
+	public static int versionCode(Context context) {
         try {
         	PackageInfo pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
         	return pinfo.versionCode;
@@ -26,7 +26,7 @@ public class AppId {
         }
     }
 
-	public static String appVersionName(Context context) {        
+	public static String versionName(Context context) {
         try {
         	PackageInfo pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
         	return pinfo.versionName;
@@ -37,7 +37,7 @@ public class AppId {
         }
     }
 	
-	public static String appFullVersionString(Context context) {
-		return String.format("%s/%d/%s", appId(context), appVersionCode(context), appVersionName(context));
+	public static String fullVersionString(Context context) {
+		return String.format("%s/%d/%s", appId(context), versionCode(context), versionName(context));
 	}
 }

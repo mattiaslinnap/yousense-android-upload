@@ -29,7 +29,7 @@ public class InstallId {
 	
 	private static String cachedInstallId;	
 	
-	public static synchronized String getInstallId(Context context) {
+	public static synchronized String installId(Context context) {
 		if (cachedInstallId == null) {
 			// No id cached in memory. Try reading from disk.
 			String storedDeviceId = readInstallId(context);
@@ -60,6 +60,7 @@ public class InstallId {
         // Known duplicate ID: http://code.google.com/p/android/issues/detail?id=10603
         if (androidId == null || "9774d56d682e549c".equals(androidId))
             androidId = "0000000000000000";
+        // TODO: hash ANDROID_ID with a salt
         byte[] random = new byte[INSTALL_ID_RANDOM_LENGTH / 2];
         new SecureRandom().nextBytes(random);
         return (androidId + new String(Hex.encodeHex(random))).toLowerCase();

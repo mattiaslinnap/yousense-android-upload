@@ -40,7 +40,7 @@ public abstract class BaseRequest {
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         try {
             connection.setUseCaches(false);
-            connection.setRequestProperty("User-Agent", AppId.appFullVersionString(context));
+            connection.setRequestProperty("User-Agent", AppId.fullVersionString(context));
             connection.setConnectTimeout(60*1000);
             connection.setReadTimeout(60*1000);
 
