@@ -11,13 +11,8 @@ import java.security.SecureRandom;
 /**
  * A class to identify app installs.
  *
- * The ID is based on two parts:
- *  * 16 hex chars of ANDROID_ID,
- *  * 24 hex chars of secure random bytes.
- *
- * ANDROID_ID is used to identify devices by multiple YouSense apps running on the same device.
- * However, it is unreliable. On some devices, ANDROID_ID may be null, or shared.
- * The random bytes help to ensure IDs do not collide, even if the ANDROID_ID portion is missing.
+ * The ID is ANDROID_ID if it exists and is not known to be invalid.
+ * The ID is 0000 + 12 random hex characters (64 bits) otherwise.
  *
  * The install ID is saved on first app launch to SharedPreferences.
  */
@@ -25,7 +20,7 @@ public class InstallId {
 
 	private static final String PREFS_FILE = "identity";
 	private static final String INSTALL_ID = "installid";
-	private static final int INSTALL_ID_RANDOM_LENGTH = 40 - 16;
+	private static final int INSTALL_ID_RANDOM_LENGTH = 12;
 	
 	private static String cachedInstallId;	
 	
@@ -58,11 +53,12 @@ public class InstallId {
     private static String generateInstallId(Context context) {
         String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         // Known duplicate ID: http://code.google.com/p/android/issues/detail?id=10603
-        if (androidId == null || "9774d56d682e549c".equals(androidId))
-            androidId = "0000000000000000";
-        // TODO: hash ANDROID_ID with a salt
-        byte[] random = new byte[INSTALL_ID_RANDOM_LENGTH / 2];
-        new SecureRandom().nextBytes(random);
-        return (androidId + new String(Hex.encodeHex(random))).toLowerCase();
+        if (androidId == null || "9774d56d682e549c".equals(androidId)) {
+            byte[] random = new byte[INSTALL_ID_RANDOM_LENGTH / 2];
+            new SecureRandom().nextBytes(random);
+            return ("0000" + new String(Hex.encodeHex(random))).toLowerCase();
+        } else {
+            return androidId.toLowerCase();
+        }
     }
 }
