@@ -1,6 +1,6 @@
 # YouSense Upload Library for Android
 
-yousense-upload-android is a library for:
+yousense-android-upload is a library for:
 * Logging sensor events (and any other data) offline,
 * compressing and rotating log files to the SDCard to make sure the internal storage does not run out,
 * Regularly uploading the log files to a server running yousense-upload-server Django app.
