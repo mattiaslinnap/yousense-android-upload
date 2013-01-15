@@ -3,16 +3,17 @@ package org.yousense.eventlog;
 import android.content.Context;
 import android.os.Build;
 import org.yousense.upload.AppId;
-import org.yousense.upload.InstallId;
+import org.yousense.upload.UserId;
 
 public class HeaderData {
     // App and user ids.
     String appid;
-    String installid;
+    String androidid;
 
-    // File and app restart counters.
-    long counter_file;
+    // Install, app restart and file counters.
+    String installid;
     long counter_restart;
+    long counter_file;
 
     // App version that created this file (may be different from version that uploads!)
     int app_version_code;
@@ -29,6 +30,8 @@ public class HeaderData {
 
     public HeaderData(Context context, long fileCounter, long restartCounter) {
         this.appid = AppId.appId(context);
+        this.androidid = UserId.androidId(context);
+
         this.installid = InstallId.installId(context);
         this.counter_file = fileCounter;
         this.counter_restart = restartCounter;

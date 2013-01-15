@@ -4,7 +4,7 @@ import android.content.Context;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.yousense.upload.AppId;
-import org.yousense.upload.InstallId;
+import org.yousense.upload.UserId;
 import org.yousense.upload.exceptions.ConfigurationException;
 
 import java.io.File;
@@ -16,7 +16,7 @@ public class StatusRequest extends BaseRequest {
     StatusData status;
 
     public StatusRequest(Context context, File[] pendingFiles) throws ConfigurationException {
-        super(context, String.format("%d/status/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), InstallId.installId(context)));
+        super(context, String.format("%d/status/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), UserId.androidId(context)));
         status = new StatusData(pendingFiles);
     }
 
