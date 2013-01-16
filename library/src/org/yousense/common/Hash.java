@@ -1,4 +1,4 @@
-package org.yousense.upload;
+package org.yousense.common;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;

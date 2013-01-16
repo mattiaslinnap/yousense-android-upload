@@ -3,8 +3,8 @@ package org.yousense.upload.net;
 import android.content.Context;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
-import org.yousense.upload.AppId;
-import org.yousense.upload.UserId;
+import org.yousense.common.AppId;
+import org.yousense.common.UserId;
 import org.yousense.upload.exceptions.ConfigurationException;
 
 import java.io.File;

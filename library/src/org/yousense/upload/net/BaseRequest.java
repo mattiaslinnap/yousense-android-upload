@@ -6,7 +6,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import com.google.gson.Gson;
-import org.yousense.upload.AppId;
+import org.yousense.common.AppId;
 import org.yousense.upload.exceptions.ConfigurationException;
 import org.yousense.upload.UploadService;
 import org.yousense.upload.exceptions.ServerUnhappyException;

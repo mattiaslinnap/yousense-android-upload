@@ -1,4 +1,4 @@
-package org.yousense.upload;
+package org.yousense.common;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -7,7 +7,7 @@ import android.util.Log;
 
 
 public class AppId {
-    public static final String TAG = UploadService.TAG;
+    public static final String TAG = "yousense-common";
 
     public static final int UPLOAD_LIBRARY_VERSION_CODE = 2;
 
