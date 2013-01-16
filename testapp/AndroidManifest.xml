@@ -3,8 +3,5 @@
           package="org.yousense.upload.testapp">
 
     <uses-sdk android:minSdkVersion="17"/>
-    <application
-            android:icon="@drawable/icon"
-            android:label="yousense-android-upload-testapp">
-    </application>
+    <application android:label="yousense-android-upload-testapp" />
 </manifest>
