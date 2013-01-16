@@ -15,13 +15,15 @@ import java.util.HashMap;
  */
 public class Counter {
 	public static final String PREFS_FILE = "counter";
-    public static final String PREFS_KEY_PREFIX = "counter_";
     public static final int PERSIST_INTERVAL = 100;
 
     private static HashMap<String, CachedCounter> cachedCounters = new HashMap<String, CachedCounter>();
 
-    // Public API
+    // Recommended Public API
 
+    /**
+     * Gets the next value for a named counter.
+     */
     public static synchronized long getNext(Context context, String name) {
         CachedCounter counter = cachedCounters.get(name);
         if (counter == null || !counter.isValid()) {
@@ -38,6 +40,26 @@ public class Counter {
         return counter.value;
     }
 
+    // Dangerous Public API - if you are using this outside of tests, you are probably doing something wrong.
+
+    /**
+     * Erases stored and cached values for all counters. They will start counting from the start again.
+     */
+    public static synchronized void resetAll(Context context) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_FILE, 0).edit();
+        editor.clear();
+        editor.commit();
+        cachedCounters.clear();
+    }
+
+    /**
+     * Erases cached values for a named counter. It will be reloaded on next access.
+     */
+    public static synchronized void clearCache(Context context, String name) {
+        cachedCounters.remove(name);
+    }
+
+
     // Private persistence logic
 
     private static class CachedCounter {
@@ -50,20 +72,20 @@ public class Counter {
         }
 
         boolean isValid() {
-            return (value > PERSIST_INTERVAL &&  //
+            return (value > PERSIST_INTERVAL &&  // When first created, the value is jumped and saved.
                     value >= lastSaved);
         }
 
         synchronized void loadFromStorageAndJump(Context context) {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
-            long value = prefs.getLong(PREFS_KEY_PREFIX + name, 0);
+            value = prefs.getLong(name, 0);
             value += 2 * PERSIST_INTERVAL;  // Increment counter by more than a whole interval, so that any non-saved values are skipped, and the jump itself is obvious.
             saveToStorage(context);  // Make sure the jump is recorded
         }
 
         synchronized void saveToStorage(Context context) {
             SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_FILE, 0).edit();
-            editor.putLong(PREFS_KEY_PREFIX + name, value);
+            editor.putLong(name, value);
             editor.commit();
             lastSaved = value;
         }
