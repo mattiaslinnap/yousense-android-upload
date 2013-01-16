@@ -2,38 +2,12 @@ package org.yousense.common;
 
 import android.content.Intent;
 import android.os.Bundle;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.TreeSet;
 
 public class Pretty {
 
-	public static String join(String separator, Iterable<String> elements) {
-		StringBuffer sb = new StringBuffer();
-		boolean first = true;
-		for (String elem : elements) {
-			if (first) {
-				sb.append(elem);
-				first = false;
-			} else {
-				sb.append(separator);
-				sb.append(elem);
-			}
-		}		
-		return sb.toString();
-
-
-	}
-	
-	public static String hexString(byte[] bytes) {
-		String hex = "0123456789abcdef";
-		StringBuilder sb = new StringBuilder();		
-		for (byte b : bytes) {
-			sb.append(hex.charAt((b >> 4) & 0xF));
-			sb.append(hex.charAt(b & 0xF));
-		}
-		return sb.toString();
-	}
-	
 	public static String prettyPrintIntent(Intent intent) {
 		if (intent == null)
 			return "Intent: NULL";
@@ -42,7 +16,7 @@ public class Pretty {
 		if (intent.getAction() != null)
 			sb.append("action=" + intent.getAction() + "\n");
 		if (intent.getCategories() != null)
-			sb.append("categories=[" + Strings.join(", ", intent.getCategories()) + "]\n");
+			sb.append("categories=[" + StringUtils.join(intent.getCategories(), ", ") + "]\n");
 		if (intent.getData() != null)
 			sb.append("data=" + intent.getDataString() + "\n");
 		if (intent.getComponent() != null)
