@@ -1,8 +1,8 @@
-package org.yousense.eventlog;
+package org.yousense.eventlog.data;
 
 import android.os.SystemClock;
 
-public class Event {
+public class EventData {
     String tag;
     long counter_object;
     long time_system;
@@ -11,7 +11,7 @@ public class Event {
 
     Object data;
 
-    public Event(String tag, Object data, long objectCounter) {
+    public EventData(String tag, Object data, long objectCounter) {
         this.tag = tag;
         this.counter_object = objectCounter;
         this.time_system = System.currentTimeMillis();
