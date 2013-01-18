@@ -4,6 +4,9 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import org.apache.commons.io.FileUtils;
+import org.yousense.common.Files;
+import org.yousense.common.Hash;
 import org.yousense.upload.exceptions.ConfigurationException;
 import org.yousense.upload.exceptions.ServerUnhappyException;
 import org.yousense.upload.net.FileRequest;
@@ -19,20 +22,40 @@ public class UploadService extends IntentService {
 
     private static volatile Status status;
 
-    public UploadService() {
-        super("YouSense Upload Service");
-        status = Status.IDLE;
+    // Public API
+
+    /**
+     * Copies a file to the pending files directory, queueing it for upload.
+     * The original is not deleted.
+     */
+    public static void copyFileForUpload(Context context, File original) throws IOException {
+        // TODO: check file exists and is readable for better error messaging.
+        String sha1 = Hash.sha1Hex(original);
+        File tempFile = new File(getMoveDirectory(context), original.getName());
+        try {
+            // Copy file to the same filesystem to enable atomic moves.
+            FileUtils.copyFile(original, tempFile);
+            if (!Hash.sha1Hex(tempFile).equals(sha1))
+                throw new IOException("SHA1 mismatch after copy");
+            // Atomic move into the upload directory to avoid race conditions on writing files.
+            FileUtils.moveFileToDirectory(tempFile, getUploadDirectory(context), false);
+        } catch (IOException e) {
+            tempFile.delete();
+            throw e;
+        }
+    }
+
+    public static void startUpload(Context context) {
+        Intent intent = new Intent(context, UploadService.class);
+        intent.setAction(UploadService.ACTION_UPLOAD);
+        context.startService(intent);
     }
 
     public static Status getStatus() {
         return status;
     }
 
-    public static void startUpload(Context context) {
-        Intent intent = new Intent(context, UploadService.class);
-        intent.setAction(ACTION_UPLOAD);
-        context.startService(intent);
-    }
+    // Implementation
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -40,7 +63,7 @@ public class UploadService extends IntentService {
             status = Status.UPLOADING;
 
             if (ACTION_UPLOAD.equals(intent.getAction())) {
-                File[] pending = UploadFolder.sortedPendingFiles(this);
+                File[] pending = Files.listFilesSorted(getUploadDirectory(this));
                 new StatusRequest(this, pending).run();
 
                 for (File file : pending) {
@@ -57,5 +80,18 @@ public class UploadService extends IntentService {
         } finally {
             status = Status.IDLE;
         }
+    }
+
+    public UploadService() {
+        super("YouSense Upload Service");
+        status = Status.IDLE;
+    }
+
+    private static File getMoveDirectory(Context context) throws IOException {
+        return Files.getExternalSubdir(context, "yousense-upload-move");
+    }
+
+    private static File getUploadDirectory(Context context) throws IOException {
+        return Files.getExternalSubdir(context, "yousense-upload");
     }
 }

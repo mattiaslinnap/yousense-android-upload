@@ -3,13 +3,13 @@ package org.yousense.eventlog.data;
 import android.os.Build;
 
 public class BuildData {
-    String manufacturer;
-    String model;
-    String device;
-    String display;
-    String serial;
-    String os_release;
-    int os_sdk;
+    public String manufacturer;
+    public String model;
+    public String device;
+    public String display;
+    public String serial;
+    public String os_release;
+    public int os_sdk;
 
     public BuildData() {
         this.manufacturer = Build.MANUFACTURER;
