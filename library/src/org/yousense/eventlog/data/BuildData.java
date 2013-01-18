@@ -1,4 +1,4 @@
-package org.yousense.eventlog;
+package org.yousense.eventlog.data;
 
 import android.os.Build;
 
