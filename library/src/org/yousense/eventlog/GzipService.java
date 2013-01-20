@@ -25,6 +25,8 @@ public class GzipService extends IntentService {
         if (!ACTION_GZIP.equals(intent.getAction()) && !ACTION_GZIP_AND_UPLOAD.equals(intent.getAction()))
             return;
 
+        // TODO: logs
+
         // Gzip all files that are not open, in order.
         try {
             for (File file : Files.listFilesSorted(EventLog.getClosedDirectory(this))) {
@@ -46,7 +48,7 @@ public class GzipService extends IntentService {
                 }
             }
         } catch (IOException e) {
-            Log.e(EventLog.TAG, "Error copying .gz file to upload directory.", e);
+            Log.e(EventLog.TAG, "Throw copying .gz file to upload directory.", e);
         }
 
         // Start upload now if requested

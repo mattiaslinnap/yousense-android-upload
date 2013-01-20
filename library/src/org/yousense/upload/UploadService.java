@@ -63,7 +63,7 @@ public class UploadService extends IntentService {
             status = Status.UPLOADING;
 
             if (ACTION_UPLOAD.equals(intent.getAction())) {
-                File[] pending = Files.listFilesSorted(getUploadDirectory(this));
+                File[] pending = sortedPendingFiles(this);
                 new StatusRequest(this, pending).run();
 
                 for (File file : pending) {
@@ -80,6 +80,10 @@ public class UploadService extends IntentService {
         } finally {
             status = Status.IDLE;
         }
+    }
+
+    public static File[] sortedPendingFiles(Context context) throws IOException {
+        return Files.listFilesSorted(getUploadDirectory(context));
     }
 
     public UploadService() {

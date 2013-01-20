@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class Files {
+    public static final String TAG = AppId.TAG;
     public static final String UTF8 = "UTF-8";
 
     /**
@@ -36,17 +37,17 @@ public class Files {
         File dir = new File(outer, name);
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
-                throw new IOException("Failed to create " + dir.getAbsolutePath());
+                Throw.ioe(TAG, "Failed to create " + dir.getAbsolutePath());
             }
         } else {
             if (!dir.isDirectory())
-                throw new IOException("Not a directory: " + dir.getAbsolutePath());
+                Throw.ioe(TAG, "Not a directory: " + dir.getAbsolutePath());
             if (!dir.canRead())
-                throw new IOException("No read permission: " + dir.getAbsolutePath());
+                Throw.ioe(TAG, "No read permission: " + dir.getAbsolutePath());
             if (!dir.canWrite())
-                throw new IOException("No write permission: " + dir.getAbsolutePath());
+                Throw.ioe(TAG, "No write permission: " + dir.getAbsolutePath());
             if (!dir.canExecute())
-                throw new IOException("No execute (access files) permission: " + dir.getAbsolutePath());
+                Throw.ioe(TAG, "No execute (access files) permission: " + dir.getAbsolutePath());
         }
         return dir;
     }
@@ -54,16 +55,16 @@ public class Files {
     public static File[] listFilesSorted(File directory) throws IOException {
         File[] files = directory.listFiles();
         if (files == null)
-            throw new IOException("File.listFiles returned null, maybe not directory: " + directory.getAbsolutePath());
+            Throw.ioe(TAG, "File.listFiles returned null, maybe not directory: " + directory.getAbsolutePath());
         Arrays.sort(files, new SortedByName());
         return files;
     }
 
     public static void moveAllFilesSorted(File fromDirectory, File toDirectory) throws IOException {
         if (!fromDirectory.isDirectory())
-            throw new IOException("Cannot move files from a non-directory: " + fromDirectory.getAbsolutePath());
+            Throw.ioe(TAG, "Cannot move files from a non-directory: " + fromDirectory.getAbsolutePath());
         if (!toDirectory.isDirectory())
-            throw new IOException("Cannot move files to a non-directory: " + toDirectory.getAbsolutePath());
+            Throw.ioe(TAG, "Cannot move files to a non-directory: " + toDirectory.getAbsolutePath());
 
         for (File file : listFilesSorted(fromDirectory)) {
             FileUtils.moveFileToDirectory(file, toDirectory, false);

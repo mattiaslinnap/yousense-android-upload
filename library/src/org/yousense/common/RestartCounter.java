@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
  */
 public class RestartCounter {
 
+    public static final String TAG = AppId.TAG;
 	public static final String PREFS_FILE = "restartcounter";
 	public static final String PREFS_KEY = "counter_restart";
 
@@ -23,7 +24,7 @@ public class RestartCounter {
      */
 	public static synchronized void init(Context context) {
 		if (valid) {
-			throw new IllegalStateException("Must not increment RestartCounter twice.");
+            Throw.ise(TAG, "Must not increment RestartCounter twice.");
 		} else {
 			// Find last counter value, or 1 if first launch.
 			SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
@@ -39,9 +40,11 @@ public class RestartCounter {
 	}
 	
 	public static synchronized long getValue() {
-		if (valid)
+		if (valid) {
 			return count;
-		else
-			throw new IllegalStateException("Must not read RestartCounter before initialization.");
-	}
+        } else {
+            Throw.ise(TAG, "Must not read RestartCounter before initialization.");
+            return 0; // Never reached, but to make compiler happy.
+        }
+    }
 }

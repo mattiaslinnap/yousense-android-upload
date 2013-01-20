@@ -46,9 +46,16 @@ public class EventFileWriter {
 
     private static File generateFilename(Context context, Event header) throws IOException {
         HeaderData hdata = (HeaderData)header.data;
-        // TODO: make sure filenames are generated in sorted order.
-        String filename = String.format("%s-%s-r%d-f%d-e%d-%s",
+        // Make sure filenames are generated in sorted filename order by zero-padding the counters.
+        // Space is reserved for about 30 years (10k days) of operation:
+        // 3 digits (1k) app version numbers.
+        // 4 digits (10k) for number of restarts,
+        // 6 digits (1M) for number of files,
+        // 10 digits (100M) for number of events.
+        // App version comes first, so that new filename formats will sort after the old ones.
+        String filename = String.format("%s-v%03d-%s-r%04d-f08%d-e%010d-%s",
                 hdata.appid,
+                hdata.app_version_code,
                 hdata.userid,
                 hdata.counter_restart,
                 hdata.counter_file,

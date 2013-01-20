@@ -1,5 +1,6 @@
 package org.yousense.common;
 
+import android.util.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -14,7 +15,7 @@ import java.util.zip.GZIPOutputStream;
  *
  */
 public class Gzip {
-
+    public static final String TAG = AppId.TAG;
     public static final int GZIP_ATTEMPTS = 2;  // How many times gzipping is attempted for a single call. It sometimes fails.
 
     /**
@@ -23,7 +24,7 @@ public class Gzip {
      */
     public static File gzip(File file) throws IOException {
         if (file.getName().endsWith(".gz"))
-            throw new IOException("Refusing to gzip a file that already ends with .gz: " + file.getAbsolutePath());
+            Throw.ioe(TAG, "Refusing to gzip a file that already ends with .gz: %s", file.getAbsolutePath());
 
         File gzipFile = new File(file.getAbsolutePath() + ".gz");
         for (int i = 0; i < GZIP_ATTEMPTS; ++i) {
@@ -32,26 +33,28 @@ public class Gzip {
                 FileUtils.copyFile(file, gzipStream);
                 gzipStream.close();
 
-                if (!contentEqualsGzip(file, gzipFile))
-                    throw new IOException("Gzip failed, contents mismatch.");
+                if (!contentEqualsGzip(file, gzipFile)) {
+                    Throw.ioe(TAG, "Gzip output does not match original on attempt %d", i + 1);
+                }
 
                 // All ok. Delete original.
                 file.delete();
                 return gzipFile;
             } catch (IOException e) {
-                // TODO: Log error.
+                Log.e(TAG, String.format("Failed attempt %d of gzipping %s", i + 1, file.getAbsolutePath()), e);
                 gzipFile.delete();
             }
         }
         // Failed.
-        throw new IOException(String.format("Gzipping failed after %d attempts: %s", GZIP_ATTEMPTS, file.getAbsolutePath()));
+        Throw.ioe(TAG, "Failed all %d attempts to gzip %s", GZIP_ATTEMPTS, file.getAbsolutePath());
+        return null; // never reached, but to make compiler happy.
     }
 
     public static boolean contentEqualsGzip(File uncompressed, File gzipped) throws IOException {
         if (uncompressed.getName().endsWith(".gz"))
-            throw new IOException("Refusing to compare an uncompressed file that ends with .gz: " + uncompressed.getAbsolutePath());
+            Throw.ioe(TAG, "Refusing to compare an uncompressed file that ends with .gz: %s", uncompressed.getAbsolutePath());
         if (!gzipped.getName().endsWith(".gz"))
-            throw new IOException("Refusing to compare an gzip file that does not end with .gz: " + gzipped.getAbsolutePath());
+            Throw.ioe(TAG, "Refusing to compare an gzip file that does not end with .gz: %s", gzipped.getAbsolutePath());
         FileInputStream uncompressedStream = new FileInputStream(uncompressed);
         GZIPInputStream gzipStream = new GZIPInputStream(new FileInputStream(gzipped));
         try {
