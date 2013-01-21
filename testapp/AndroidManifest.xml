@@ -4,6 +4,6 @@
           android:versionCode="2"
           android:versionName="2.0 beta">
 
-    <uses-sdk android:minSdkVersion="17"/>
+    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="17"/>
     <application android:label="yousense-android-upload-testapp" />
 </manifest>

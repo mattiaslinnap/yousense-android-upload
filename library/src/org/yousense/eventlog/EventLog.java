@@ -4,10 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import org.yousense.common.Files;
+import org.yousense.common.ManifestInfo;
 
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Main interface to the eventlog.
+ * It is recommended to call a rotate*() function regularly, for example once per hour.
+ */
 public class EventLog {
     public static final String TAG = "yousense-eventlog";
     public static final int WRITE_ATTEMPTS = 2;  // How many times a write is attempted before giving up.
@@ -34,16 +39,20 @@ public class EventLog {
     }
 
     public static synchronized void rotateAndStartGzip(Context context) {
+        Log.i(TAG, "Rotating eventlog file, will start gzip later.");
         rotateWriter(context);
         Intent intent = new Intent(context, GzipService.class);
         intent.setAction(GzipService.ACTION_GZIP);
+        GzipService.checkManifest(context);
         context.startService(intent);
     }
 
     public static synchronized void rotateAndStartGzipAndUpload(Context context) {
+        Log.i(TAG, "Rotating eventlog file, will start gzip and upload later.");
         rotateWriter(context);
         Intent intent = new Intent(context, GzipService.class);
         intent.setAction(GzipService.ACTION_GZIP_AND_UPLOAD);
+        GzipService.checkManifest(context);
         context.startService(intent);
     }
 

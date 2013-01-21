@@ -33,7 +33,7 @@ public class Files {
      * Returns a subdirectory of outer.
      * Creates it if necesssary and checks for write permissions.
      */
-    public static File getSubdir(File outer, String name) throws IOException {
+    public static synchronized File getSubdir(File outer, String name) throws IOException {
         File dir = new File(outer, name);
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
@@ -60,7 +60,7 @@ public class Files {
         return files;
     }
 
-    public static void moveAllFilesSorted(File fromDirectory, File toDirectory) throws IOException {
+    public static synchronized void moveAllFilesSorted(File fromDirectory, File toDirectory) throws IOException {
         if (!fromDirectory.isDirectory())
             Throw.ioe(TAG, "Cannot move files from a non-directory: " + fromDirectory.getAbsolutePath());
         if (!toDirectory.isDirectory())

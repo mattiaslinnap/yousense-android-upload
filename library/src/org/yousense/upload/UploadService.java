@@ -7,6 +7,7 @@ import android.util.Log;
 import org.apache.commons.io.FileUtils;
 import org.yousense.common.Files;
 import org.yousense.common.Hash;
+import org.yousense.common.ManifestInfo;
 import org.yousense.upload.exceptions.ConfigurationException;
 import org.yousense.upload.exceptions.ServerUnhappyException;
 import org.yousense.upload.net.FileRequest;
@@ -48,11 +49,17 @@ public class UploadService extends IntentService {
     public static void startUpload(Context context) {
         Intent intent = new Intent(context, UploadService.class);
         intent.setAction(UploadService.ACTION_UPLOAD);
+        checkManifest(context);
         context.startService(intent);
     }
 
     public static Status getStatus() {
         return status;
+    }
+
+    public static void checkManifest(Context context) {
+        if (!ManifestInfo.hasService(context, "org.yousense.upload.UploadService"))
+            Log.e(TAG, "You forgot to add <service android:name=\"org.yousense.upload.UploadService\"> to AndroidManifest.xml.");
     }
 
     // Implementation

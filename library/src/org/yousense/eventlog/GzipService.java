@@ -1,23 +1,29 @@
 package org.yousense.eventlog;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import org.yousense.common.Files;
 import org.yousense.common.Gzip;
+import org.yousense.common.ManifestInfo;
 import org.yousense.upload.UploadService;
 
 import java.io.File;
 import java.io.IOException;
 
 public class GzipService extends IntentService {
+    public static final String TAG = EventLog.TAG;
     public static final String ACTION_GZIP = "org.yousense.intent.action.GZIP";
     public static final String ACTION_GZIP_AND_UPLOAD = "org.yousense.intent.action.GZIP_AND_UPLOAD";
 
-    // Public API
-
     public GzipService() {
         super("YouSense EventLog Gzip Service");
+    }
+
+    public static void checkManifest(Context context) {
+        if (!ManifestInfo.hasService(context, "org.yousense.eventlog.GzipService"))
+            Log.e(TAG, "You forgot to add <service android:name=\"org.yousense.eventlog.GzipService\"> to AndroidManifest.xml.");
     }
 
     @Override
@@ -25,7 +31,8 @@ public class GzipService extends IntentService {
         if (!ACTION_GZIP.equals(intent.getAction()) && !ACTION_GZIP_AND_UPLOAD.equals(intent.getAction()))
             return;
 
-        // TODO: logs
+        // It's safe to call DebugLog from here, as gzipping is not in the same thread as eventlog file rotation.
+        DebugLog.i(this, TAG, "GzipService starting.");
 
         // Gzip all files that are not open, in order.
         try {
@@ -36,6 +43,7 @@ public class GzipService extends IntentService {
                 }
             }
         } catch (IOException e) {
+            DebugLog.e(this, TAG, "Error gzipping files.", e);
             // First error terminates gzipping. Copying of the successful files can proceed.
         }
 
@@ -48,7 +56,7 @@ public class GzipService extends IntentService {
                 }
             }
         } catch (IOException e) {
-            Log.e(EventLog.TAG, "Throw copying .gz file to upload directory.", e);
+            DebugLog.e(this, TAG, "Error moving files to upload directory.", e);
         }
 
         // Start upload now if requested
