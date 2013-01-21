@@ -30,8 +30,11 @@ public class Gzip {
         for (int i = 0; i < GZIP_ATTEMPTS; ++i) {
             GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(gzipFile));
             try {
-                FileUtils.copyFile(file, gzipStream);
-                gzipStream.close();
+            	try {
+            		FileUtils.copyFile(file, gzipStream);
+            	} finally {
+            		gzipStream.close();
+            	}
 
                 if (!contentEqualsGzip(file, gzipFile)) {
                     Throw.ioe(TAG, "Gzip output does not match original on attempt %d", i + 1);
