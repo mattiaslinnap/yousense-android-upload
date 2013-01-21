@@ -11,25 +11,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 
-/**
- *
- */
 public class EventFileWriter {
 
     private Gson gson;
     private Event pendingHeader;
-    private File openFile;
     private BufferedWriter openWriter;
 
     public EventFileWriter(Context context) throws IOException {
         this.gson = new Gson();
         this.pendingHeader = new Event(context, "header", new HeaderData(context));
-        this.openFile = generateFilename(context, this.pendingHeader);
-        this.openWriter = new BufferedWriter(new FileWriterWithEncoding(this.openFile, Files.UTF8));
-    }
-
-    public File getOpenFile() {
-        return openFile;
+        this.openWriter = new BufferedWriter(new FileWriterWithEncoding(generateFilename(context, this.pendingHeader), Files.UTF8));
     }
 
     public synchronized void appendEvent(Context context, String tag, Object data) throws IOException {
