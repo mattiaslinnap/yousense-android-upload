@@ -53,7 +53,7 @@ public class EventFileWriter {
         // 6 digits (1M) for number of files,
         // 10 digits (100M) for number of events.
         // App version comes first, so that new filename formats will sort after the old ones.
-        String filename = String.format("%s-v%03d-%s-r%04d-f08%d-e%010d-%s",
+        String filename = String.format("%s-v%03d-%s-r%04d-f%08d-e%010d-%s",
                 hdata.appid,
                 hdata.app_version_code,
                 hdata.userid,
