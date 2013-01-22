@@ -14,8 +14,8 @@ import java.util.HashMap;
  * Changing PERSIST_INTERVAL to be larger is okay.
  */
 public class Counter {
-	public static final String PREFS_FILE = "counter";
-    public static final int PERSIST_INTERVAL = 100;
+	static final String PREFS_FILE = "counter";
+    static final int PERSIST_INTERVAL = 100;
 
     private static HashMap<String, CachedCounter> cachedCounters = new HashMap<String, CachedCounter>();
 
@@ -40,12 +40,12 @@ public class Counter {
         return counter.value;
     }
 
-    // Dangerous Public API - if you are using this outside of tests, you are probably doing something wrong.
+    // Dangerous package API - if you are using this outside of tests, you are probably doing something wrong.
 
     /**
      * Erases stored and cached values for all counters. They will start counting from the start again.
      */
-    public static synchronized void resetAll(Context context) {
+    static synchronized void resetAll(Context context) {
         SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_FILE, 0).edit();
         editor.clear();
         editor.commit();
@@ -55,7 +55,7 @@ public class Counter {
     /**
      * Erases cached values for a named counter. It will be reloaded on next access.
      */
-    public static synchronized void clearCache(Context context, String name) {
+    static synchronized void clearCache(Context context, String name) {
         cachedCounters.remove(name);
     }
 

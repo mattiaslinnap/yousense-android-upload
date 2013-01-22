@@ -1,4 +1,4 @@
-package org.yousense.common.tests;
+package org.yousense.common;
 
 import android.content.Context;
 import android.provider.Settings;

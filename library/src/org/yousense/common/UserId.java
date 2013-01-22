@@ -20,9 +20,9 @@ import java.security.SecureRandom;
  * With 64-bit ID parts, the probability of collision is still 10^-6 for 10M people.
  */
 public class UserId {
-    public static final String PREFS_FILE = "identity";
-    public static final String USER_ID = "userid";
-    private static final int USER_ID_RANDOM_HEX_LENGTH = 16;
+    static final String PREFS_FILE = "identity";
+    static final String USER_ID = "userid";
+    static final int USER_ID_RANDOM_HEX_LENGTH = 16;
 
     private static String cachedId;
 
@@ -41,20 +41,20 @@ public class UserId {
         return cachedId;
     }
 
-    // Dangerous Public API - if you are using it outside of tests, you are probably doing something wrong.
+    // Dangerous package API - if you are using it outside of tests, you are probably doing something wrong.
 
     /**
      * Resets the randomly generated portion of the UserId.
      * This is done by erasing the stored value from disk.
      */
-    public static synchronized void resetRandomId(Context context) {
+    static synchronized void resetRandomId(Context context) {
         SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_FILE, 0).edit();
         editor.clear();
         editor.commit();
         cachedId = null;
     }
 
-    public static synchronized void clearCache() {
+    static synchronized void clearCache() {
         cachedId = null;
     }
 

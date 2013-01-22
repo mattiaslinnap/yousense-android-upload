@@ -18,39 +18,15 @@ public class Gzip {
     public static final String TAG = AppId.TAG;
     public static final int GZIP_ATTEMPTS = 2;  // How many times gzipping is attempted for a single call. It sometimes fails.
 
+    private static TestCallback doNothing = new TestCallback();
     /**
      * Gzips the given file and deletes the original.
      * The returned filename has a .gz suffix.
+     *
+     * NOT thread-safe.
      */
     public static File gzip(File file) throws IOException {
-        if (file.getName().endsWith(".gz"))
-            Throw.ioe(TAG, "Refusing to gzip a file that already ends with .gz: %s", file.getAbsolutePath());
-
-        File gzipFile = new File(file.getAbsolutePath() + ".gz");
-        for (int i = 0; i < GZIP_ATTEMPTS; ++i) {
-            GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(gzipFile));
-            try {
-            	try {
-            		FileUtils.copyFile(file, gzipStream);
-            	} finally {
-            		gzipStream.close();
-            	}
-
-                if (!contentEqualsGzip(file, gzipFile)) {
-                    Throw.ioe(TAG, "Gzip output does not match original on attempt %d", i + 1);
-                }
-
-                // All ok. Delete original.
-                file.delete();
-                return gzipFile;
-            } catch (IOException e) {
-                Log.e(TAG, String.format("Failed attempt %d of gzipping %s", i + 1, file.getAbsolutePath()), e);
-                gzipFile.delete();
-            }
-        }
-        // Failed.
-        Throw.ioe(TAG, "Failed all %d attempts to gzip %s", GZIP_ATTEMPTS, file.getAbsolutePath());
-        return null; // never reached, but to make compiler happy.
+        return testableGzip(file, doNothing);
     }
 
     public static boolean contentEqualsGzip(File uncompressed, File gzipped) throws IOException {
@@ -70,5 +46,50 @@ public class Gzip {
             uncompressedStream.close();
         }
 
+    }
+
+    /**
+     * Actual gzip code. Callback is called right after the gzipping and checks are done, to enable simulating failures.
+     */
+    static File testableGzip(File file, TestCallback callback) throws IOException {
+        if (file.getName().endsWith(".gz"))
+            Throw.ioe(TAG, "Refusing to gzip a file that already ends with .gz: %s", file.getAbsolutePath());
+
+        File gzipFile = new File(file.getAbsolutePath() + ".gz");
+        for (int i = 0; i < GZIP_ATTEMPTS; ++i) {
+            callback.openGzip();
+            GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(gzipFile));
+            try {
+            	try {
+                    callback.copy();
+            		FileUtils.copyFile(file, gzipStream);
+            	} finally {
+                    callback.closeGzip();
+            		gzipStream.close();
+            	}
+
+                callback.compare();
+                if (!contentEqualsGzip(file, gzipFile)) {
+                    Throw.ioe(TAG, "Gzip output does not match original on attempt %d", i + 1);
+                }
+
+                // All ok. Delete original.
+                file.delete();
+                return gzipFile;
+            } catch (IOException e) {
+                Log.e(TAG, String.format("Failed attempt %d of gzipping %s", i + 1, file.getAbsolutePath()), e);
+                gzipFile.delete();
+            }
+        }
+        // Failed.
+        Throw.ioe(TAG, "Failed all %d attempts to gzip %s", GZIP_ATTEMPTS, file.getAbsolutePath());
+        return null; // never reached, but to make compiler happy.
+    }
+
+    static class TestCallback {
+        void openGzip() throws IOException {}
+        void copy() throws IOException {}
+        void closeGzip() throws IOException {}
+        void compare() throws IOException {}
     }
 }

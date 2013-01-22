@@ -1,4 +1,4 @@
-package org.yousense.common.tests;
+package org.yousense.common;
 
 import android.test.AndroidTestCase;
 import org.yousense.common.AppId;
