@@ -33,11 +33,7 @@ public class GzipTest extends AndroidTestCase {
     public void testGzipFileContents() throws IOException {
         File result = Gzip.gzip(original);
         assertTrue(gzipped.exists());
-        StringWriter contents = new StringWriter();
-        GZIPInputStream stream = new GZIPInputStream(new FileInputStream(result));
-        IOUtils.copy(stream, contents);
-        stream.close();
-        assertEquals("foobar", contents.toString());
+        assertEquals("foobar", Gzip.readToString(result));
     }
 
     public void testReturnsGzipFilename() throws IOException {
@@ -138,24 +134,18 @@ public class GzipTest extends AndroidTestCase {
     }
 
     public void testGzipFileContentsIfFirstWriteIsMalformed() throws IOException {
-        FailFirstAttempt fail = new FailFirstAttempt();
-        File result = Gzip.testableGzip(original, fail);
+        Gzip.TestCallback intermittent = new Gzip.TestCallback() {
+            void compare() throws IOException {
+                if (attempts == 0)
+                    FileUtils.write(gzipped, "invalid data");
+                ++attempts;
+            }
+        };
+        File result = Gzip.testableGzip(original, intermittent);
+        assertEquals(gzipped.getAbsolutePath(), result.getAbsolutePath());
         assertFalse(original.exists());
         assertTrue(gzipped.exists());
-        StringWriter contents = new StringWriter();
-        GZIPInputStream stream = new GZIPInputStream(new FileInputStream(result));
-        IOUtils.copy(stream, contents);
-        stream.close();
-        assertEquals("foobar", contents.toString());
-        assertEquals(2, fail.attempts);
-    }
-
-    class FailFirstAttempt extends Gzip.TestCallback {
-        int attempts = 0;
-        void compare() throws IOException {
-            if (attempts == 0)
-                FileUtils.write(gzipped, "invalid data");
-            ++attempts;
-        }
+        assertEquals("foobar", Gzip.readToString(gzipped));
+        assertEquals(2, intermittent.attempts);
     }
 }

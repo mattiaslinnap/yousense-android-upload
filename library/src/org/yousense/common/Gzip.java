@@ -4,16 +4,13 @@ import android.util.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Gzip {
     public static final String TAG = AppId.TAG;
-    public static final int GZIP_ATTEMPTS = 2;  // How many times gzipping is attempted for a single call. It sometimes fails.
+    public static final int GZIP_ATTEMPTS = 3;  // How many times gzipping is attempted for a single call. It sometimes fails.
 
     private static TestCallback doNothing = new TestCallback();
     /**
@@ -33,7 +30,7 @@ public class Gzip {
         if (uncompressed.getName().endsWith(".gz"))
             Throw.ioe(TAG, "Refusing to compare an uncompressed file that ends with .gz: %s", uncompressed.getAbsolutePath());
         if (!gzipped.getName().endsWith(".gz"))
-            Throw.ioe(TAG, "Refusing to compare an gzip file that does not end with .gz: %s", gzipped.getAbsolutePath());
+            Throw.ioe(TAG, "Refusing to compare a gzip file that does not end with .gz: %s", gzipped.getAbsolutePath());
         FileInputStream uncompressedStream = new FileInputStream(uncompressed);
         GZIPInputStream gzipStream = new GZIPInputStream(new FileInputStream(gzipped));
         try {
@@ -45,7 +42,21 @@ public class Gzip {
         } finally {
             uncompressedStream.close();
         }
+    }
 
+    /**
+     * Reads the entire contents of a gzipped file into memory as a String.
+     * UTF-8 encoding is assumed.
+     * WARNING: Many Android versions have a low, <16MB memory limit for apps. Do not use on big files.
+     */
+    public static String readToString(File gzipped) throws IOException {
+        if (!gzipped.getName().endsWith(".gz"))
+            Throw.ioe(TAG, "Refusing to read a gzip file that does not end with .gz: %s", gzipped.getAbsolutePath());
+        StringWriter contents = new StringWriter();
+        GZIPInputStream stream = new GZIPInputStream(new FileInputStream(gzipped));
+        IOUtils.copy(stream, contents, Files.UTF8);
+        stream.close();
+        return contents.toString();
     }
 
     /**
@@ -87,6 +98,7 @@ public class Gzip {
     }
 
     static class TestCallback {
+        int attempts;  // This is not updated unless a child class overrides callback methods.
         void openGzip() throws IOException {}
         void copy() throws IOException {}
         void closeGzip() throws IOException {}
