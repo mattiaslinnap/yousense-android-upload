@@ -1,12 +1,13 @@
 package org.yousense.common;
 
 import android.test.AndroidTestCase;
-import android.test.MoreAsserts;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
@@ -45,7 +46,7 @@ public class GzipTest extends AndroidTestCase {
     }
 
     public void testOriginalIsDeleted() throws IOException {
-        File result = Gzip.gzip(original);
+        Gzip.gzip(original);
         assertFalse(original.exists());
     }
 

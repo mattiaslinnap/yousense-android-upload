@@ -11,9 +11,6 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-/**
- *
- */
 public class Gzip {
     public static final String TAG = AppId.TAG;
     public static final int GZIP_ATTEMPTS = 2;  // How many times gzipping is attempted for a single call. It sometimes fails.
@@ -29,6 +26,9 @@ public class Gzip {
         return testableGzip(file, doNothing);
     }
 
+    /**
+     * Returns true if the uncompressed file and the gzipped file have the same contents (apart from compression).
+     */
     public static boolean contentEqualsGzip(File uncompressed, File gzipped) throws IOException {
         if (uncompressed.getName().endsWith(".gz"))
             Throw.ioe(TAG, "Refusing to compare an uncompressed file that ends with .gz: %s", uncompressed.getAbsolutePath());
@@ -49,7 +49,7 @@ public class Gzip {
     }
 
     /**
-     * Actual gzip code. Callback is called right after the gzipping and checks are done, to enable simulating failures.
+     * Actual gzip code. Callback is called right before the gzipping and checks are done, to enable simulating failures.
      */
     static File testableGzip(File file, TestCallback callback) throws IOException {
         if (file.getName().endsWith(".gz"))
@@ -74,11 +74,11 @@ public class Gzip {
                 }
 
                 // All ok. Delete original.
-                file.delete();
+                file.delete();  // TODO: failure is ignored. But if the original survives, it is presumed to be re-gzipped and then deleted later.
                 return gzipFile;
             } catch (IOException e) {
                 Log.e(TAG, String.format("Failed attempt %d of gzipping %s", i + 1, file.getAbsolutePath()), e);
-                gzipFile.delete();
+                gzipFile.delete();  // TODO: failure is ignored. But if the gzipped survives, it is presumed to be overwritten by a later gzip call.
             }
         }
         // Failed.
