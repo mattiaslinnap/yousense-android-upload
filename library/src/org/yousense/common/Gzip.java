@@ -66,10 +66,11 @@ public class Gzip {
         if (file.getName().endsWith(".gz"))
             Throw.ioe(TAG, "Refusing to gzip a file that already ends with .gz: %s", file.getAbsolutePath());
 
-        File gzipFile = new File(file.getAbsolutePath() + ".gz");
+        File tempFile  = new File(file.getAbsolutePath() + ".gz.temp");
+        File finalFile = new File(file.getAbsolutePath() + ".gz");
         for (int i = 0; i < GZIP_ATTEMPTS; ++i) {
             callback.openGzip();
-            GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(gzipFile));
+            GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(tempFile));
             try {
             	try {
                     callback.copy();
@@ -80,16 +81,19 @@ public class Gzip {
             	}
 
                 callback.compare();
-                if (!contentEqualsGzip(file, gzipFile)) {
+                if (!contentEqualsGzip(file, tempFile)) {
                     Throw.ioe(TAG, "Gzip output does not match original on attempt %d", i + 1);
                 }
+                
+                // rename the .gz.temp file to .gz
+                tempFile.renameTo(finalFile);
 
                 // All ok. Delete original.
                 file.delete();  // TODO: failure is ignored. But if the original survives, it is presumed to be re-gzipped and then deleted later.
-                return gzipFile;
+                return finalFile;
             } catch (IOException e) {
                 Log.e(TAG, String.format("Failed attempt %d of gzipping %s", i + 1, file.getAbsolutePath()), e);
-                gzipFile.delete();  // TODO: failure is ignored. But if the gzipped survives, it is presumed to be overwritten by a later gzip call.
+                tempFile.delete();  // TODO: failure is ignored. But if the gzipped survives, it is presumed to be overwritten by a later gzip call.
             }
         }
         // Failed.
