@@ -26,13 +26,13 @@ public class Gzip {
     /**
      * Returns true if the uncompressed file and the gzipped file have the same contents (apart from compression).
      */
-    public static boolean contentEqualsGzip(File uncompressed, File gzipped) throws IOException {
+    public static boolean contentEqualsGzip(File uncompressed, File gzippedTemp) throws IOException {
         if (uncompressed.getName().endsWith(".gz"))
             Throw.ioe(TAG, "Refusing to compare an uncompressed file that ends with .gz: %s", uncompressed.getAbsolutePath());
-        if (!gzipped.getName().endsWith(".gz"))
-            Throw.ioe(TAG, "Refusing to compare a gzip file that does not end with .gz: %s", gzipped.getAbsolutePath());
+        if (!gzippedTemp.getName().endsWith(".gz.temp"))
+            Throw.ioe(TAG, "Refusing to compare a gzip file that does not end with .gz.temp: %s", gzippedTemp.getAbsolutePath());
         FileInputStream uncompressedStream = new FileInputStream(uncompressed);
-        GZIPInputStream gzipStream = new GZIPInputStream(new FileInputStream(gzipped));
+        GZIPInputStream gzipStream = new GZIPInputStream(new FileInputStream(gzippedTemp));
         try {
             try {
                 return IOUtils.contentEquals(uncompressedStream, gzipStream);
