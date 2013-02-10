@@ -84,7 +84,7 @@ public class Files {
         if (file == null)
             Throw.ioe(TAG, "File is null: %s", file.getAbsolutePath());
         String path = file.getAbsolutePath();
-        String suffix = StringUtils.substringAfterLast(path, ".");
+        String suffix = "." + StringUtils.substringAfterLast(path, ".");
         checkValidSuffix(suffix);
         return suffix;
     }
@@ -122,15 +122,17 @@ public class Files {
         }
     }
 
-    private static void checkValidSuffix(String suffix) throws IOException {
+    public static void checkValidSuffix(String suffix) throws IOException {
         if (suffix == null)
             Throw.ioe(TAG, "Suffix is null.");
         if ("".equals(suffix))
             Throw.ioe(TAG, "Suffix is empty string.");
         if (!suffix.startsWith("."))
             Throw.ioe(TAG, "Suffix must start with a dot: \"%s\".", suffix);
+        if (suffix.length() < 2)
+            Throw.ioe(TAG, "Suffix \"%s\" is too short. Must be (dot)[a-z]{1,10}.", suffix);
         if (suffix.length() > 11)
-            Throw.ioe(TAG, "Suffix \"%s\" is too long Must be (dot)[a-z]{1,10}.", suffix);
+            Throw.ioe(TAG, "Suffix \"%s\" is too long. Must be (dot)[a-z]{1,10}.", suffix);
         if (!StringUtils.containsOnly(suffix.substring(1, suffix.length()), "abcdefghijklmnopqrstuvwxyz"))
             Throw.ioe(TAG, "Suffix \"%s\" contains weird characters. Must be (dot)[a-z]{1,10}.", suffix);
     }
