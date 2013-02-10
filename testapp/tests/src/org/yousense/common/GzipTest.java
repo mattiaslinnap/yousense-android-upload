@@ -2,25 +2,23 @@ package org.yousense.common;
 
 import android.test.AndroidTestCase;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Arrays;
-import java.util.zip.GZIPInputStream;
 
 public class GzipTest extends AndroidTestCase {
 
     File dir;
     File original;
+    File temp;
     File gzipped;
 
     @Override
     protected void setUp() throws Exception {
         dir = Files.getInternalSubdir(getContext(), "gziptest");
         original = new File(dir, "file");
+        temp = new File(dir, "file.gz.temp");
         gzipped = new File(dir, "file.gz");
         FileUtils.write(original, "foobar");
     }
@@ -46,6 +44,11 @@ public class GzipTest extends AndroidTestCase {
         assertFalse(original.exists());
     }
 
+    public void testTemporaryIsDeleted() throws IOException {
+        Gzip.gzip(original);
+        assertFalse(temp.exists());
+    }
+
 
     public void testNoFileChangeIfGzipOpenFails() throws IOException {
         try {
@@ -58,6 +61,7 @@ public class GzipTest extends AndroidTestCase {
         } catch (IOException e) {
         }
         assertTrue(original.exists());
+        assertFalse(temp.exists());
         assertFalse(gzipped.exists());
     }
 
@@ -72,6 +76,7 @@ public class GzipTest extends AndroidTestCase {
         } catch (IOException e) {
         }
         assertTrue(original.exists());
+        assertFalse(temp.exists());
         assertFalse(gzipped.exists());
     }
 
@@ -86,6 +91,7 @@ public class GzipTest extends AndroidTestCase {
         } catch (IOException e) {
         }
         assertTrue(original.exists());
+        assertFalse(temp.exists());
         assertFalse(gzipped.exists());
     }
 
@@ -100,6 +106,7 @@ public class GzipTest extends AndroidTestCase {
         } catch (IOException e) {
         }
         assertTrue(original.exists());
+        assertFalse(temp.exists());
         assertFalse(gzipped.exists());
     }
 
@@ -107,13 +114,14 @@ public class GzipTest extends AndroidTestCase {
         try {
             Gzip.testableGzip(original, new Gzip.TestCallback() {
                 void compare() throws IOException {
-                    FileUtils.write(gzipped, "invalid data");
+                    FileUtils.write(temp, "invalid data");
                 }
             });
             fail("Expected IOException");
         } catch (IOException e) {
         }
         assertTrue(original.exists());
+        assertFalse(temp.exists());
         assertFalse(gzipped.exists());
     }
 
@@ -121,15 +129,16 @@ public class GzipTest extends AndroidTestCase {
         try {
             Gzip.testableGzip(original, new Gzip.TestCallback() {
                 void compare() throws IOException {
-                    byte[] bytes = FileUtils.readFileToByteArray(gzipped);
+                    byte[] bytes = FileUtils.readFileToByteArray(temp);
                     bytes = Arrays.copyOf(bytes, bytes.length - 5);
-                    FileUtils.writeByteArrayToFile(gzipped, bytes);
+                    FileUtils.writeByteArrayToFile(temp, bytes);
                 }
             });
             fail("Expected IOException");
         } catch (IOException e) {
         }
         assertTrue(original.exists());
+        assertFalse(temp.exists());
         assertFalse(gzipped.exists());
     }
 
@@ -137,13 +146,14 @@ public class GzipTest extends AndroidTestCase {
         Gzip.TestCallback intermittent = new Gzip.TestCallback() {
             void compare() throws IOException {
                 if (attempts == 0)
-                    FileUtils.write(gzipped, "invalid data");
+                    FileUtils.write(temp, "invalid data");
                 ++attempts;
             }
         };
         File result = Gzip.testableGzip(original, intermittent);
         assertEquals(gzipped.getAbsolutePath(), result.getAbsolutePath());
         assertFalse(original.exists());
+        assertFalse(temp.exists());
         assertTrue(gzipped.exists());
         assertEquals("foobar", Gzip.readToString(gzipped));
         assertEquals(2, intermittent.attempts);
