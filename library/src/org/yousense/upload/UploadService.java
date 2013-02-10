@@ -14,12 +14,15 @@ import org.yousense.upload.net.FileRequest;
 import org.yousense.upload.net.StatusRequest;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 
 public class UploadService extends IntentService {
     public static final String TAG = "yousense-upload";
     public static final String ACTION_UPLOAD = "org.yousense.intent.action.UPLOAD";
     public enum Status { IDLE, UPLOADING }
+    final static String TEMP_SUFFIX = ".temp";
+    final static FileFilter VALID_FILTER = new Files.SuffixFilter(TEMP_SUFFIX, false);
 
     private static volatile Status status;
 
@@ -32,14 +35,15 @@ public class UploadService extends IntentService {
     public static void copyFileForUpload(Context context, File original) throws IOException {
         // TODO: check file exists and is readable for better error messaging.
         String sha1 = Hash.sha1Hex(original);
-        File tempFile = new File(getMoveDirectory(context), original.getName());
+        File finalFile = new File(getUploadDirectory(context), original.getName());
+        File tempFile = Files.appendSuffix(finalFile, TEMP_SUFFIX);
         try {
             // Copy file to the same filesystem to enable atomic moves.
             FileUtils.copyFile(original, tempFile);
             if (!Hash.sha1Hex(tempFile).equals(sha1))
                 throw new IOException("SHA1 mismatch after copy");
-            // Atomic move into the upload directory to avoid race conditions on writing files.
-            FileUtils.moveFileToDirectory(tempFile, getUploadDirectory(context), false);
+            // Atomic move to remove suffix.
+            tempFile.renameTo(finalFile);
         } catch (IOException e) {
             tempFile.delete();
             throw e;
@@ -70,13 +74,12 @@ public class UploadService extends IntentService {
             status = Status.UPLOADING;
 
             if (ACTION_UPLOAD.equals(intent.getAction())) {
-                File[] pending = sortedPendingFiles(this);
-                new StatusRequest(this, pending).run();
-
-                for (File file : pending) {
+                new StatusRequest(this).run();
+                for (File file : sortedValidFiles(this)) {
                     new FileRequest(this, file).run();
                     file.delete();
                 }
+                new StatusRequest(this).run();
             }
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
@@ -89,20 +92,16 @@ public class UploadService extends IntentService {
         }
     }
 
-    public static File[] sortedPendingFiles(Context context) throws IOException {
-        return Files.listFilesSorted(getUploadDirectory(context));
+    public static File[] sortedValidFiles(Context context) throws IOException {
+        return Files.listFilesSorted(getUploadDirectory(context), VALID_FILTER);
+    }
+
+    public static File getUploadDirectory(Context context) throws IOException {
+        return Files.getExternalSubdir(context, "yousense-upload");
     }
 
     public UploadService() {
         super("YouSense Upload Service");
         status = Status.IDLE;
-    }
-
-    private static File getMoveDirectory(Context context) throws IOException {
-        return Files.getExternalSubdir(context, "yousense-upload-move");
-    }
-
-    private static File getUploadDirectory(Context context) throws IOException {
-        return Files.getExternalSubdir(context, "yousense-upload");
     }
 }

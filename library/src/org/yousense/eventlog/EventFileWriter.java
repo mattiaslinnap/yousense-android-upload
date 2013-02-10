@@ -44,7 +44,7 @@ public class EventFileWriter {
         // 6 digits (1M) for number of files,
         // 10 digits (100M) for number of events.
         // App version comes first, so that new filename formats will sort after the old ones.
-        String filename = String.format("%s-v%03d-%s-r%04d-f%08d-e%010d-%s",
+        String filename = String.format("%s-v%03d-%s-r%04d-f%08d-e%010d-%s" + EventLog.OPEN_SUFFIX,
                 hdata.appid,
                 hdata.app_version_code,
                 hdata.userid,
@@ -52,7 +52,7 @@ public class EventFileWriter {
                 hdata.counter_file,
                 header.counter_event,
                 Time.timestampNoSpacesWithMilliseconds(header.time_system));
-        return new File(EventLog.getOpenDirectory(context), filename);
+        return new File(EventLog.getLogDirectory(context), filename);
     }
 
     private void writeNullSeparatedJson(Object event) throws IOException {

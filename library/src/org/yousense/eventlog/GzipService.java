@@ -36,11 +36,8 @@ public class GzipService extends IntentService {
 
         // Gzip all files that are not open, in order.
         try {
-            for (File file : Files.listFilesSorted(EventLog.getClosedDirectory(this))) {
-                if (!isGzip(file)) {
-                    // Todo: check that duplicates are removed
-                    Gzip.gzip(file);
-                }
+            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.CLOSED_FILTER)) {
+                Gzip.gzip(file);
             }
         } catch (IOException e) {
             DebugLog.e(this, TAG, "Error gzipping files.", e);
@@ -49,11 +46,9 @@ public class GzipService extends IntentService {
 
         // Copy all .gz files for upload, in order.
         try {
-            for (File file : Files.listFilesSorted(EventLog.getClosedDirectory(this))) {
-                if (isGzip(file)) {
-                    UploadService.copyFileForUpload(this, file);
-                    file.delete();
-                }
+            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.GZIPPED_FILTER)) {
+                UploadService.copyFileForUpload(this, file);
+                file.delete();
             }
         } catch (IOException e) {
             DebugLog.e(this, TAG, "Error moving files to upload directory.", e);
@@ -63,9 +58,5 @@ public class GzipService extends IntentService {
         if (ACTION_GZIP_AND_UPLOAD.equals(intent.getAction())) {
             UploadService.startUpload(this);
         }
-    }
-
-    private static boolean isGzip(File file) {
-        return file.getName().endsWith(".gz");
     }
 }

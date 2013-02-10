@@ -7,6 +7,7 @@ import org.yousense.common.Files;
 import org.yousense.common.ManifestInfo;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 
 /**
@@ -16,6 +17,11 @@ import java.io.IOException;
 public class EventLog {
     public static final String TAG = "yousense-eventlog";
     public static final int WRITE_ATTEMPTS = 2;  // How many times a write is attempted before giving up.
+    final static String OPEN_SUFFIX = ".open";
+    final static String CLOSED_SUFFIX = ".log";
+    final static String GZIPPED_SUFFIX = ".gz";
+    final static FileFilter CLOSED_FILTER = new Files.SuffixFilter(CLOSED_SUFFIX, true);
+    final static FileFilter GZIPPED_FILTER = new Files.SuffixFilter(GZIPPED_SUFFIX, true);
 
     private static EventFileWriter writer;
 
@@ -57,18 +63,10 @@ public class EventLog {
     }
 
     /**
-     * Directory with the file currently being written to.
-     * May contain also written and closed files.
-     * All files are atomically moved to getClosedDirectory() during file rotation.
+     * Directory with log files. Open files have suffix .open, Closed files .log.
+     * Gzipped files are named .log.gz, and there may be temporary files .log.gz.temp.
      */
-    static File getOpenDirectory(Context context) throws IOException {
-        return Files.getInternalSubdir(context, "yousense-eventlog-open");
-    }
-
-    /**
-     * Directory with log files that have been written and closed.
-     */
-    static File getClosedDirectory(Context context) throws IOException {
+    public static File getLogDirectory(Context context) throws IOException {
         return Files.getInternalSubdir(context, "yousense-eventlog");
     }
 
@@ -84,7 +82,7 @@ public class EventLog {
         }
 
         try {
-            Files.moveAllFilesSorted(getOpenDirectory(context), getClosedDirectory(context));
+            Files.moveAllFilesSortedSuffix(getLogDirectory(context), OPEN_SUFFIX, CLOSED_SUFFIX);
         } catch (IOException e) {
             Log.e(TAG, "Failed to move eventlog files from open to closed directory.", e);
         }

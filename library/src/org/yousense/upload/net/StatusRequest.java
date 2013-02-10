@@ -15,9 +15,9 @@ public class StatusRequest extends BaseRequest {
 
     StatusData status;
 
-    public StatusRequest(Context context, File[] pendingFiles) throws ConfigurationException {
+    public StatusRequest(Context context) throws ConfigurationException, IOException {
         super(context, String.format("%d/status/%s/%s/", AppId.UPLOAD_LIBRARY_VERSION_CODE, AppId.appId(context), UserId.userId(context)));
-        status = new StatusData(pendingFiles);
+        status = new StatusData(context);
     }
 
     @Override

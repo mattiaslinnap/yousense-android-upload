@@ -66,8 +66,8 @@ public class Gzip {
         if (file.getName().endsWith(".gz"))
             Throw.ioe(TAG, "Refusing to gzip a file that already ends with .gz: %s", file.getAbsolutePath());
 
-        File tempFile  = new File(file.getAbsolutePath() + ".gz.temp");
-        File finalFile = new File(file.getAbsolutePath() + ".gz");
+        File finalFile = Files.appendSuffix(file, ".gz");
+        File tempFile  = Files.appendSuffix(finalFile, ".temp");
         for (int i = 0; i < GZIP_ATTEMPTS; ++i) {
             callback.openGzip();
             GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(tempFile));
