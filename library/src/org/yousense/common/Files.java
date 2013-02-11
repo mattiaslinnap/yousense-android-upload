@@ -2,7 +2,6 @@ package org.yousense.common;
 
 
 import android.content.Context;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -41,35 +40,26 @@ public class Files {
             if (!dir.mkdirs()) {
                 Throw.ioe(TAG, "Failed to create " + dir.getAbsolutePath());
             }
-        } else {
-            if (!dir.isDirectory())
-                Throw.ioe(TAG, "Not a directory: " + dir.getAbsolutePath());
-            if (!dir.canRead())
-                Throw.ioe(TAG, "No read permission: " + dir.getAbsolutePath());
-            if (!dir.canWrite())
-                Throw.ioe(TAG, "No write permission: " + dir.getAbsolutePath());
-            if (!dir.canExecute())
-                Throw.ioe(TAG, "No execute (access files) permission: " + dir.getAbsolutePath());
         }
+        checkWritableDirectory(dir);
         return dir;
     }
 
-    public static File[] listFilesSorted(File directory, FileFilter filter) throws IOException {
-        File[] files = directory.listFiles(filter);
+    public static File[] listFilesSorted(File dir, FileFilter filter) throws IOException {
+        checkReadableDirectory(dir);
+        File[] files = dir.listFiles(filter);
         if (files == null)
-            Throw.ioe(TAG, "File.listFiles returned null, maybe not directory: " + directory.getAbsolutePath());
+            files = new File[0];
         Arrays.sort(files, new SortedByName());
         return files;
     }
 
-    public static synchronized void moveAllFilesSortedSuffix(File directory, String fromSuffix, String toSuffix) throws IOException {
-        if (!directory.isDirectory())
-            Throw.ioe(TAG, "Cannot move files in a non-directory: " + directory.getAbsolutePath());
+    public static synchronized void moveAllFilesSortedSuffix(File dir, String fromSuffix, String toSuffix) throws IOException {
+        checkWritableDirectory(dir);
         checkValidSuffix(fromSuffix);
         checkValidSuffix(toSuffix);
-
-        for (File file : listFilesSorted(directory, new SuffixFilter(fromSuffix, true))) {
-            FileUtils.moveFile(file, replaceSuffix(file, toSuffix));
+        for (File file : listFilesSorted(dir, new SuffixFilter(fromSuffix, true))) {
+            file.renameTo(replaceSuffix(file, toSuffix));
         }
     }
 
@@ -81,8 +71,10 @@ public class Files {
     }
 
     public static String getSuffix(File file) throws IOException {
-        if (file == null)
-            Throw.ioe(TAG, "File is null: %s", file.getAbsolutePath());
+        if (file == null) {
+            Throw.ioe(TAG, "File is null.");
+            return null;  // To make static analysis happy
+        }
         String path = file.getAbsolutePath();
         String suffix = "." + StringUtils.substringAfterLast(path, ".");
         checkValidSuffix(suffix);
@@ -90,8 +82,10 @@ public class Files {
     }
 
     public static File appendSuffix(File file, String suffix) throws IOException {
-        if (file == null)
-            Throw.ioe(TAG, "File is null: %s", file.getAbsolutePath());
+        if (file == null) {
+            Throw.ioe(TAG, "File is null.");
+            return null; // To make static analysis happy
+        }
         checkValidSuffix(suffix);
         if (file.getAbsolutePath().endsWith(suffix))
             Throw.ioe(TAG, "File already has suffix %s: %s", suffix, file.getAbsolutePath());
@@ -99,8 +93,10 @@ public class Files {
     }
 
     public static File replaceSuffix(File file, String newSuffix) throws IOException {
-        if (file == null)
-            Throw.ioe(TAG, "File is null: %s", file.getAbsolutePath());
+        if (file == null) {
+            Throw.ioe(TAG, "File is null.");
+            return null;  // To make static analysis happy
+        }
         checkValidSuffix(newSuffix);
         String currentSuffix = getSuffix(file);
         if (newSuffix.equals(currentSuffix))
@@ -123,17 +119,40 @@ public class Files {
     }
 
     public static void checkValidSuffix(String suffix) throws IOException {
-        if (suffix == null)
+        if (suffix == null) {
             Throw.ioe(TAG, "Suffix is null.");
-        if ("".equals(suffix))
-            Throw.ioe(TAG, "Suffix is empty string.");
-        if (!suffix.startsWith("."))
-            Throw.ioe(TAG, "Suffix must start with a dot: \"%s\".", suffix);
-        if (suffix.length() < 2)
-            Throw.ioe(TAG, "Suffix \"%s\" is too short. Must be (dot)[a-z]{1,10}.", suffix);
-        if (suffix.length() > 11)
-            Throw.ioe(TAG, "Suffix \"%s\" is too long. Must be (dot)[a-z]{1,10}.", suffix);
-        if (!StringUtils.containsOnly(suffix.substring(1, suffix.length()), "abcdefghijklmnopqrstuvwxyz"))
-            Throw.ioe(TAG, "Suffix \"%s\" contains weird characters. Must be (dot)[a-z]{1,10}.", suffix);
+        } else {
+            if ("".equals(suffix))
+                Throw.ioe(TAG, "Suffix is empty string.");
+            if (!suffix.startsWith("."))
+                Throw.ioe(TAG, "Suffix must start with a dot: \"%s\".", suffix);
+            if (suffix.length() < 2)
+                Throw.ioe(TAG, "Suffix \"%s\" is too short. Must be (dot)[a-z]{1,10}.", suffix);
+            if (suffix.length() > 11)
+                Throw.ioe(TAG, "Suffix \"%s\" is too long. Must be (dot)[a-z]{1,10}.", suffix);
+            if (!StringUtils.containsOnly(suffix.substring(1, suffix.length()), "abcdefghijklmnopqrstuvwxyz"))
+                Throw.ioe(TAG, "Suffix \"%s\" contains weird characters. Must be (dot)[a-z]{1,10}.", suffix);
+        }
+    }
+
+    public static void checkReadableDirectory(File dir) throws IOException {
+        if (dir == null) {
+            Throw.ioe(TAG, "Directory object File is null.");
+        } else {
+            if (!dir.exists())
+                Throw.ioe(TAG, "Directory does not exist: " + dir.getAbsolutePath());
+            if (!dir.isDirectory())
+                Throw.ioe(TAG, "Not a directory: " + dir.getAbsolutePath());
+            if (!dir.canRead())
+                Throw.ioe(TAG, "No read permission: " + dir.getAbsolutePath());
+            if (!dir.canExecute())
+                Throw.ioe(TAG, "No execute (access files) permission: " + dir.getAbsolutePath());
+        }
+    }
+
+    public static void checkWritableDirectory(File dir) throws IOException {
+        checkReadableDirectory(dir);
+        if (!dir.canWrite())
+            Throw.ioe(TAG, "No write permission: " + dir.getAbsolutePath());
     }
 }
