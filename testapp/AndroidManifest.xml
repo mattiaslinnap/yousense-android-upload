@@ -5,5 +5,8 @@
           android:versionName="2.0 beta">
 
     <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="17"/>
-    <application android:label="yousense-android-upload-testapp" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <application android:label="yousense-android-upload-testapp">
+        <service android:name="org.yousense.eventlog.GzipService" />
+    </application>
 </manifest>

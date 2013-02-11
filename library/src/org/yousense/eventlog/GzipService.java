@@ -12,6 +12,10 @@ import org.yousense.upload.UploadService;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Background Service for GZipping closed EventLog files.
+ * Do not start this service directly, use static methods on EventLog.
+ */
 public class GzipService extends IntentService {
     public static final String TAG = EventLog.TAG;
     public static final String ACTION_GZIP = "org.yousense.intent.action.GZIP";
@@ -34,10 +38,16 @@ public class GzipService extends IntentService {
         // It's safe to call DebugLog from here, as gzipping is not in the same thread as eventlog file rotation.
         DebugLog.i(TAG, "GzipService starting.");
 
-        // Gzip all files that are not open, in order.
+        // For all closed log files, in filename order:
+        // * delete empty files,
+        // * gzip files with data.
         try {
-            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(), EventLog.CLOSED_FILTER)) {
-                Gzip.gzip(file);
+            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.CLOSED_FILTER)) {
+                if (file.length() == 0) {
+                    file.delete();
+                } else {
+                    Gzip.gzip(file);
+                }
             }
         } catch (IOException e) {
             DebugLog.e(TAG, "Error gzipping files.", e);
@@ -46,7 +56,7 @@ public class GzipService extends IntentService {
 
         // Copy all .gz files for upload, in order.
         try {
-            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(), EventLog.GZIPPED_FILTER)) {
+            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.GZIPPED_FILTER)) {
                 UploadService.copyFileForUpload(this, file);
                 file.delete();
             }

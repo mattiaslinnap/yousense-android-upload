@@ -12,13 +12,6 @@ public class Throw {
         throw tr;
     }
 
-    public static void rte(String tag, String format, Object... args) {
-        String message = String.format(format, args);
-        RuntimeException tr = new RuntimeException(message);
-        DebugLog.e(tag, message, tr);
-        throw tr;
-    }
-
     public static void ise(String tag, String format, Object... args) throws IllegalStateException {
         String message = String.format(format, args);
         IllegalStateException tr = new IllegalStateException(message);

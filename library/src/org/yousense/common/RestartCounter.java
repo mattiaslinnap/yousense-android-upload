@@ -3,6 +3,8 @@ package org.yousense.common;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.io.IOException;
+
 /**
  * Persistent counter, that complains if it is not incremented before a read.
  * Useful for managing an app restart counter.
@@ -18,33 +20,24 @@ public class RestartCounter {
     static long count = 0;
     static boolean valid = false;
 
-    /**
-     * Increments the counter.
-     * Tip: put this into your Application object's onCreate() callback.
-     */
-	public static synchronized void init(Context context) {
-		if (valid) {
-            Throw.ise(TAG, "Must not increment RestartCounter twice.");
-		} else {
-			// Find last counter value, or 1 if first launch.
-			SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
-			long lastCount = prefs.getLong(PREFS_KEY, 0);
-			count = lastCount + 1;
+	public static synchronized long getValue(Context context) throws IOException {
+        if (!valid)
+            incrementAndCache(context);
+        if (!valid)
+            Throw.ioe(TAG, "Could not read and increment RestartCounter.");
+        return count;
+    }
 
-			// Save new value to disk. 
-			SharedPreferences.Editor editor = prefs.edit();
-			editor.putLong(PREFS_KEY, count);
-			editor.commit();
-			valid = true;
-		}			
-	}
-	
-	public static synchronized long getValue() {
-		if (valid) {
-			return count;
-        } else {
-            Throw.ise(TAG, "Must not read RestartCounter before initialization.");
-            return 0; // Never reached, but to make compiler happy.
-        }
+    private static void incrementAndCache(Context context) {
+        // Find last counter value, or 1 if first launch.
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
+        long lastCount = prefs.getLong(PREFS_KEY, 0);
+        count = lastCount + 1;
+
+        // Save new value to disk.
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putLong(PREFS_KEY, count);
+        editor.commit();
+        valid = true;
     }
 }

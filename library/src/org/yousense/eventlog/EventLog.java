@@ -3,8 +3,8 @@ package org.yousense.eventlog;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import org.apache.commons.io.FileUtils;
 import org.yousense.common.Files;
-import org.yousense.common.ManifestInfo;
 import org.yousense.common.Throw;
 
 import java.io.File;
@@ -15,7 +15,10 @@ import java.io.IOException;
  * Main interface to the eventlog.
  * It is recommended to call a rotate*() function regularly, for example once per hour.
  *
- * By default, EventLog is disabled. Call EventLog.init(getApplicationContext()) in Application.onCreate() to start it.
+ * By default, EventLog is disabled. To enable EventLog in your application:
+ * * add <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> to AndroidManifest.xml,
+ * * add <service android:name="org.yousense.eventlog.GzipService" /> to AndroidManifest.xml,
+ * * add EventLog.init(getApplicationContext()) to Application.onCreate().
  */
 public class EventLog {
     public static final String TAG = "yousense-eventlog";
@@ -27,17 +30,17 @@ public class EventLog {
     final static FileFilter GZIPPED_FILTER = new Files.SuffixFilter(GZIPPED_SUFFIX, true);
 
     private static EventFileWriter writer;
-    private static Context context;
+    private static Context appContext;
 
     /**
      * Call this from Application.onCreate() to enable EventLog.
      */
     public static synchronized void init(Context appContext) {
-        context = appContext;
+        EventLog.appContext = appContext;
     }
 
     public static synchronized boolean append(String tag, Object data) {
-        if (context == null) {
+        if (appContext == null) {
             // EventLog is disabled.
             return false;
         }
@@ -49,7 +52,7 @@ public class EventLog {
             try {
                 if (writer == null)
                     throw new IOException("EventFileWriter is null, cannot write");
-                writer.appendEvent(context, tag, data);
+                writer.appendEvent(appContext, tag, data);
                 return true;  // Success
             } catch (IOException e) {
                 Log.e(TAG, String.format("Failed to write event with tag %s, maybe retrying.", tag), e);
@@ -61,46 +64,42 @@ public class EventLog {
     }
 
     public static synchronized void rotateAndStartGzip() {
-        if (context == null) {
-            Throw.rte(TAG, "Cannot rotate EventLog writer because it is disabled.");
+        if (appContext == null) {
+            Throw.ise(TAG, "Cannot rotate EventLog writer because it is disabled.");
         }
 
         Log.i(TAG, "Rotating eventlog file, will start gzip later.");
         rotateWriter();
-        Intent intent = new Intent(context, GzipService.class);
+        Intent intent = new Intent(appContext, GzipService.class);
         intent.setAction(GzipService.ACTION_GZIP);
-        GzipService.checkManifest(context);
-        context.startService(intent);
+        GzipService.checkManifest(appContext);
+        appContext.startService(intent);
     }
 
     public static synchronized void rotateAndStartGzipAndUpload() {
-        if (context == null) {
-            Throw.rte(TAG, "Cannot rotate writer EventLog because it is disabled.");
+        if (appContext == null) {
+            Throw.ise(TAG, "Cannot rotate writer EventLog because it is disabled.");
         }
 
         Log.i(TAG, "Rotating eventlog file, will start gzip and upload later.");
         rotateWriter();
-        Intent intent = new Intent(context, GzipService.class);
+        Intent intent = new Intent(appContext, GzipService.class);
         intent.setAction(GzipService.ACTION_GZIP_AND_UPLOAD);
-        GzipService.checkManifest(context);
-        context.startService(intent);
+        GzipService.checkManifest(appContext);
+        appContext.startService(intent);
     }
 
     /**
      * Directory with log files. Open files have suffix .open, Closed files .log.
      * Gzipped files are named .log.gz, and there may be temporary files .log.gz.temp.
      */
-    public static File getLogDirectory() throws IOException {
-        if (context == null) {
-            Throw.rte(TAG, "Cannot get EventLog directory because it is disabled.");
-        }
-
+    public static File getLogDirectory(Context context) throws IOException {
         return Files.getInternalSubdir(context, "yousense-eventlog");
     }
 
     private static void rotateWriter() {
-        if (context == null) {
-            Throw.rte(TAG, "Cannot rotate EventLog writer because it is disabled.");
+        if (appContext == null) {
+            Throw.ise(TAG, "Cannot rotate EventLog writer because it is disabled.");
         }
 
         // Close existing writer.
@@ -114,16 +113,29 @@ public class EventLog {
         }
 
         try {
-            Files.moveAllFilesSortedSuffix(getLogDirectory(), OPEN_SUFFIX, CLOSED_SUFFIX);
+            Files.moveAllFilesSortedSuffix(getLogDirectory(appContext), OPEN_SUFFIX, CLOSED_SUFFIX);
         } catch (IOException e) {
             Log.e(TAG, "Failed to move eventlog files from open to closed directory.", e);
         }
 
         // Open new writer.
         try {
-            writer = new EventFileWriter(context);
+            writer = new EventFileWriter(appContext);
         } catch (IOException e) {
             Log.e(TAG, "Failed to open new EventFileWriter", e);
         }
+    }
+
+    // Dangerous public API - if your are using it outside tests, you are probably doing something wrong.
+
+    /**
+     * Do not call this outside of tests.
+     */
+    public static synchronized void resetWriterAndDeleteLogDirectory(Context context) throws IOException {
+        if (writer != null)
+            writer.close();
+        writer = null;
+        if (getLogDirectory(context).exists())
+            FileUtils.deleteDirectory(getLogDirectory(context));
     }
 }

@@ -42,4 +42,11 @@ public class Time {
     public static String isoFormat() {
     	return isoFormat(new Date());
     }
+
+    public static void sleepIgnoreInterrupt(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+        }
+    }
 }

@@ -39,6 +39,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="upload-testapp" scope="PROVIDED" />
+    <orderEntry type="module" module-name="upload" />
   </component>
 </module>
 

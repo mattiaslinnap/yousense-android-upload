@@ -104,4 +104,14 @@ public class UploadService extends IntentService {
         super("YouSense Upload Service");
         status = Status.IDLE;
     }
+
+    // Dangerous public API - if your are using it outside tests, you are probably doing something wrong.
+
+    /**
+     * Do not call this outside of tests.
+     */
+    public static void deleteUploadDirectory(Context context) throws IOException {
+        if (getUploadDirectory(context).exists())
+            FileUtils.deleteDirectory(getUploadDirectory(context));
+    }
 }
