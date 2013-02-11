@@ -32,26 +32,26 @@ public class GzipService extends IntentService {
             return;
 
         // It's safe to call DebugLog from here, as gzipping is not in the same thread as eventlog file rotation.
-        DebugLog.i(this, TAG, "GzipService starting.");
+        DebugLog.i(TAG, "GzipService starting.");
 
         // Gzip all files that are not open, in order.
         try {
-            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.CLOSED_FILTER)) {
+            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(), EventLog.CLOSED_FILTER)) {
                 Gzip.gzip(file);
             }
         } catch (IOException e) {
-            DebugLog.e(this, TAG, "Error gzipping files.", e);
+            DebugLog.e(TAG, "Error gzipping files.", e);
             // First error terminates gzipping. Copying of the successful files can proceed.
         }
 
         // Copy all .gz files for upload, in order.
         try {
-            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.GZIPPED_FILTER)) {
+            for (File file : Files.listFilesSorted(EventLog.getLogDirectory(), EventLog.GZIPPED_FILTER)) {
                 UploadService.copyFileForUpload(this, file);
                 file.delete();
             }
         } catch (IOException e) {
-            DebugLog.e(this, TAG, "Error moving files to upload directory.", e);
+            DebugLog.e(TAG, "Error moving files to upload directory.", e);
         }
 
         // Start upload now if requested

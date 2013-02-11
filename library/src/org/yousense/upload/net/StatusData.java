@@ -14,7 +14,7 @@ public class StatusData {
 
     public StatusData(Context context) throws IOException {
         this.dirs = new ArrayList<DirData>();
-        this.dirs.add(new DirData(EventLog.getLogDirectory(context)));
+        this.dirs.add(new DirData(EventLog.getLogDirectory()));
         this.dirs.add(new DirData(UploadService.getUploadDirectory(context)));
     }
 

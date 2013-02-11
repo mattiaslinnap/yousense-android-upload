@@ -52,7 +52,7 @@ public class EventFileWriter {
                 hdata.counter_file,
                 header.counter_event,
                 Time.timestampNoSpacesWithMilliseconds(header.time_system));
-        return new File(EventLog.getLogDirectory(context), filename);
+        return new File(EventLog.getLogDirectory(), filename);
     }
 
     private void writeNullSeparatedJson(Object event) throws IOException {

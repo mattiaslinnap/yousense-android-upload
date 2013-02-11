@@ -16,6 +16,7 @@ import java.util.ArrayDeque;
 public class DebugLog {
     public static final int SCROLLBACK_LINES = 200;
 
+    private static boolean logToEventLog = false;
     private static ArrayDeque<String> scrollback = new ArrayDeque<String>();
 
     // API for displaying latest messages
@@ -26,40 +27,41 @@ public class DebugLog {
 
     // API similar to android.util.Log.
 
-    public static void d(Context context, String tag, String message) {
+    public static void d(String tag, String message) {
         Log.d(tag, message);
-        appendToEventLog(context, tag, Log.DEBUG, message, null);
+        appendToEventLogAndScrollback(tag, Log.DEBUG, message, null);
     }
 
-    public static void d(Context context, String tag, String message, Throwable tr) {
+    public static void d(String tag, String message, Throwable tr) {
         Log.d(tag, message, tr);
-        appendToEventLog(context, tag, Log.DEBUG, message, tr);
+        appendToEventLogAndScrollback(tag, Log.DEBUG, message, tr);
     }
 
-    public static void i(Context context, String tag, String message) {
+    public static void i(String tag, String message) {
         Log.i(tag, message);
-        appendToEventLog(context, tag, Log.INFO, message, null);
+        appendToEventLogAndScrollback(tag, Log.INFO, message, null);
     }
 
-    public static void i(Context context, String tag, String message, Throwable tr) {
+    public static void i(String tag, String message, Throwable tr) {
         Log.i(tag, message, tr);
-        appendToEventLog(context, tag, Log.INFO, message, tr);
+        appendToEventLogAndScrollback(tag, Log.INFO, message, tr);
     }
 
-    public static void e(Context context, String tag, String message) {
+    public static void e(String tag, String message) {
         Log.e(tag, message);
-        appendToEventLog(context, tag, Log.ERROR, message, null);
+        appendToEventLogAndScrollback(tag, Log.ERROR, message, null);
     }
 
-    public static void e(Context context, String tag, String message, Throwable tr) {
+    public static void e(String tag, String message, Throwable tr) {
         Log.e(tag, message, tr);
-        appendToEventLog(context, tag, Log.ERROR, message, tr);
+        appendToEventLogAndScrollback(tag, Log.ERROR, message, tr);
     }
 
-    private static void appendToEventLog(Context context, String tag, int level, String message, Throwable tr) {
+    private static void appendToEventLogAndScrollback(String tag, int level, String message, Throwable tr) {
         DebugData data = new DebugData(Log.DEBUG, tag, message, null);
         appendToScrollback(data);
-        EventLog.append(context, "debug.log", data);
+        if (logToEventLog)
+            EventLog.append("debug.log", data);
     }
 
     private static synchronized void appendToScrollback(DebugData data) {
