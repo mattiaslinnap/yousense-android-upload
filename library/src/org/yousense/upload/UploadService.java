@@ -77,6 +77,9 @@ public class UploadService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         try {
             status = Status.UPLOADING;
+            DebugLog.dLog(TAG, "UploadService starting.");
+            // Workaround for HttpURLConnection connection pool is brokenness.
+            System.setProperty("http.keepAlive", "false");
 
             if (ACTION_UPLOAD.equals(intent.getAction())) {
                 new StatusRequest(this).run();
@@ -87,11 +90,11 @@ public class UploadService extends IntentService {
                 new StatusRequest(this).run();
             }
         } catch (IOException e) {
-            DebugLog.eLog(TAG, "Upload failed with IOException", e);
+            DebugLog.eLog(TAG, "Request failed with IOException", e);
         } catch (ConfigurationException e) {
-            DebugLog.eLog(TAG, "Upload failed with ConfigurationException", e);
+            DebugLog.eLog(TAG, "Request failed with ConfigurationException", e);
         } catch (ServerUnhappyException e) {
-            DebugLog.eLog(TAG, "Upload failed with ServerUnhappyException", e);
+            DebugLog.eLog(TAG, "Request failed with ServerUnhappyException", e);
         } finally {
             status = Status.IDLE;
         }

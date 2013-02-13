@@ -23,11 +23,10 @@ public class StatusRequest extends BaseRequest {
     void setupConnectionAndWriteBody(HttpURLConnection connection) throws IOException {
         Gson gson = new Gson();
         byte[] body = gson.toJson(status).getBytes("UTF-8");
-
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         connection.setFixedLengthStreamingMode(body.length);
-
         IOUtils.write(body, connection.getOutputStream());
+        connection.getOutputStream().flush();
     }
 }

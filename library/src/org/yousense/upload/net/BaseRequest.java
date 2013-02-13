@@ -43,6 +43,7 @@ public abstract class BaseRequest {
             connection.setRequestProperty("User-Agent", AppId.fullVersionString(context));
             connection.setConnectTimeout(60*1000);
             connection.setReadTimeout(60*1000);
+            connection.setDoInput(true);
 
             setupConnectionAndWriteBody(connection);
 
