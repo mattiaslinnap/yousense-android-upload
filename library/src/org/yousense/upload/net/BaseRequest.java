@@ -7,7 +7,7 @@ import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import com.google.gson.Gson;
 import org.yousense.common.AppId;
-import org.yousense.upload.exceptions.ConfigurationException;
+import org.yousense.common.ConfigurationException;
 import org.yousense.upload.UploadService;
 import org.yousense.upload.exceptions.ServerUnhappyException;
 
@@ -26,7 +26,7 @@ public abstract class BaseRequest {
     public BaseRequest(Context context, String relativeUrl) throws ConfigurationException {
         this.context = context;
         try {
-            this.url = new URL(baseUrlFromAndroidManifest(context) + relativeUrl);
+            this.url = new URL(UploadService.getBaseUrl() + relativeUrl);
         } catch (MalformedURLException e) {
             throw new ConfigurationException("Base + relative URL is invalid.", e);
         }
@@ -53,30 +53,6 @@ public abstract class BaseRequest {
             return response;
         } finally {
             connection.disconnect();
-        }
-    }
-
-    public static String baseUrlFromAndroidManifest(Context context) throws ConfigurationException {
-        try {
-            ComponentName myself = new ComponentName(context, UploadService.class);
-            ServiceInfo info = context.getPackageManager().getServiceInfo(myself, PackageManager.GET_META_DATA);
-            if (info == null)
-                throw new ConfigurationException("Could not read Service info from AndroidManifest.xml.");
-            Bundle metadata = info.metaData;
-            if (metadata == null)
-                throw new ConfigurationException("Could not find Service meta-data in AndroidManifest.xml.");
-            String baseUrl = metadata.getString("base_url");
-            if (baseUrl == null)
-                throw new ConfigurationException("Could not find Service meta-data with name base_url in AndroidManifest.xml.");
-            // Test that partial base_url URL is valid before the first request is made.
-            new URL(baseUrl);
-            if (!baseUrl.endsWith("/"))
-                throw new ConfigurationException("Service base_url in AndroidManifest.xml must end with a \"/\".");
-            return baseUrl;
-        } catch (PackageManager.NameNotFoundException e) {
-            throw new ConfigurationException("Could not find Service in AndroidManifest.xml.", e);
-        } catch (MalformedURLException e) {
-            throw new ConfigurationException("Service base_url in AndroidManifest.xml is not a valid URL.", e);
         }
     }
 }

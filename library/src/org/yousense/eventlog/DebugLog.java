@@ -1,6 +1,5 @@
 package org.yousense.eventlog;
 
-import android.content.Context;
 import android.util.Log;
 import org.apache.commons.lang3.StringUtils;
 import org.yousense.common.Time;
@@ -15,8 +14,6 @@ import java.util.ArrayDeque;
  */
 public class DebugLog {
     public static final int SCROLLBACK_LINES = 200;
-
-    private static boolean logToEventLog = false;
     private static ArrayDeque<String> scrollback = new ArrayDeque<String>();
 
     // API for displaying latest messages
@@ -25,39 +22,61 @@ public class DebugLog {
         return StringUtils.join(scrollback, "\n");
     }
 
-    // API similar to android.util.Log.
+    // API similar to android.util.Log. Does not write to EventLog.
 
     public static void d(String tag, String message) {
         Log.d(tag, message);
-        appendToEventLogAndScrollback(tag, Log.DEBUG, message, null);
+        appendToEventLogAndScrollback(tag, Log.DEBUG, message, null, false);
     }
 
     public static void d(String tag, String message, Throwable tr) {
         Log.d(tag, message, tr);
-        appendToEventLogAndScrollback(tag, Log.DEBUG, message, tr);
+        appendToEventLogAndScrollback(tag, Log.DEBUG, message, tr, false);
     }
 
     public static void i(String tag, String message) {
         Log.i(tag, message);
-        appendToEventLogAndScrollback(tag, Log.INFO, message, null);
+        appendToEventLogAndScrollback(tag, Log.INFO, message, null, false);
     }
 
     public static void i(String tag, String message, Throwable tr) {
         Log.i(tag, message, tr);
-        appendToEventLogAndScrollback(tag, Log.INFO, message, tr);
+        appendToEventLogAndScrollback(tag, Log.INFO, message, tr, false);
     }
 
     public static void e(String tag, String message) {
         Log.e(tag, message);
-        appendToEventLogAndScrollback(tag, Log.ERROR, message, null);
+        appendToEventLogAndScrollback(tag, Log.ERROR, message, null, false);
     }
 
     public static void e(String tag, String message, Throwable tr) {
         Log.e(tag, message, tr);
-        appendToEventLogAndScrollback(tag, Log.ERROR, message, tr);
+        appendToEventLogAndScrollback(tag, Log.ERROR, message, tr, false);
     }
 
-    private static void appendToEventLogAndScrollback(String tag, int level, String message, Throwable tr) {
+    // API similar to android.util.Log. Also writes to EventLog - do not call from within EventLog code!
+
+    public static void dLog(String tag, String message) {
+        Log.d(tag, message);
+        appendToEventLogAndScrollback(tag, Log.DEBUG, message, null, true);
+    }
+
+    public static void dLog(String tag, String message, Throwable tr) {
+        Log.d(tag, message, tr);
+        appendToEventLogAndScrollback(tag, Log.DEBUG, message, tr, true);
+    }
+
+    public static void eLog(String tag, String message) {
+        Log.e(tag, message);
+        appendToEventLogAndScrollback(tag, Log.ERROR, message, null, true);
+    }
+
+    public static void eLog(String tag, String message, Throwable tr) {
+        Log.e(tag, message, tr);
+        appendToEventLogAndScrollback(tag, Log.ERROR, message, tr, true);
+    }
+
+    private static void appendToEventLogAndScrollback(String tag, int level, String message, Throwable tr, boolean logToEventLog) {
         DebugData data = new DebugData(Log.DEBUG, tag, message, null);
         appendToScrollback(data);
         if (logToEventLog)

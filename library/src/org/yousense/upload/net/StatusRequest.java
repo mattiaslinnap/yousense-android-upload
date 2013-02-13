@@ -5,9 +5,8 @@ import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.yousense.common.AppId;
 import org.yousense.common.UserId;
-import org.yousense.upload.exceptions.ConfigurationException;
+import org.yousense.common.ConfigurationException;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 

@@ -5,7 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.yousense.common.AppId;
 import org.yousense.common.Hash;
 import org.yousense.common.UserId;
-import org.yousense.upload.exceptions.ConfigurationException;
+import org.yousense.common.ConfigurationException;
 
 import java.io.File;
 import java.io.IOException;

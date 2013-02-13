@@ -36,10 +36,16 @@ public class EventLog {
      * Call this from Application.onCreate() to enable EventLog.
      */
     public static synchronized void init(Context appContext) {
+        if (appContext != null)
+            GzipService.checkManifest(appContext);
         EventLog.appContext = appContext;
     }
 
+    /**
+     * Main logging call.
+     */
     public static synchronized boolean append(String tag, Object data) {
+        // NOTE: Make sure this method never tries to eventually write to EventLog again via Throw or DebugLog.
         if (appContext == null) {
             // EventLog is disabled.
             return false;
@@ -64,28 +70,22 @@ public class EventLog {
     }
 
     public static synchronized void rotateAndStartGzip() {
-        if (appContext == null) {
+        if (appContext == null)
             Throw.ise(TAG, "Cannot rotate EventLog writer because it is disabled.");
-        }
-
         Log.i(TAG, "Rotating eventlog file, will start gzip later.");
         rotateWriter();
         Intent intent = new Intent(appContext, GzipService.class);
         intent.setAction(GzipService.ACTION_GZIP);
-        GzipService.checkManifest(appContext);
         appContext.startService(intent);
     }
 
     public static synchronized void rotateAndStartGzipAndUpload() {
-        if (appContext == null) {
+        if (appContext == null)
             Throw.ise(TAG, "Cannot rotate writer EventLog because it is disabled.");
-        }
-
         Log.i(TAG, "Rotating eventlog file, will start gzip and upload later.");
         rotateWriter();
         Intent intent = new Intent(appContext, GzipService.class);
         intent.setAction(GzipService.ACTION_GZIP_AND_UPLOAD);
-        GzipService.checkManifest(appContext);
         appContext.startService(intent);
     }
 
@@ -98,6 +98,8 @@ public class EventLog {
     }
 
     private static void rotateWriter() {
+        // NOTE: rotateWriter() is called from append().
+        // Make sure this method never tries to eventually write to EventLog again via Throw or DebugLog.
         if (appContext == null) {
             Throw.ise(TAG, "Cannot rotate EventLog writer because it is disabled.");
         }

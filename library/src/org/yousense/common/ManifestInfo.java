@@ -10,6 +10,8 @@ public class ManifestInfo {
     public static final String TAG = AppId.TAG;
 
     public static PackageInfo info(Context context) {
+        if (context == null)
+            throw new IllegalArgumentException("Context must not be null.");
         try {
             return context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_SERVICES);
         } catch (PackageManager.NameNotFoundException e) {

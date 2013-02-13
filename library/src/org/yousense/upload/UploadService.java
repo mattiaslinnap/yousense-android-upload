@@ -3,12 +3,9 @@ package org.yousense.upload;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import org.apache.commons.io.FileUtils;
-import org.yousense.common.Files;
-import org.yousense.common.Hash;
-import org.yousense.common.ManifestInfo;
-import org.yousense.upload.exceptions.ConfigurationException;
+import org.yousense.common.*;
+import org.yousense.eventlog.DebugLog;
 import org.yousense.upload.exceptions.ServerUnhappyException;
 import org.yousense.upload.net.FileRequest;
 import org.yousense.upload.net.StatusRequest;
@@ -16,6 +13,8 @@ import org.yousense.upload.net.StatusRequest;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class UploadService extends IntentService {
     public static final String TAG = "yousense-upload";
@@ -25,8 +24,14 @@ public class UploadService extends IntentService {
     final static FileFilter VALID_FILTER = new Files.SuffixFilter(TEMP_SUFFIX, false);
 
     private static volatile Status status;
+    private static String baseUrl;
 
     // Public API
+
+    public static void init(String baseUrl) {
+        checkBaseUrl(baseUrl);
+        UploadService.baseUrl = baseUrl;
+    }
 
     /**
      * Copies a file to the pending files directory, queueing it for upload.
@@ -41,7 +46,7 @@ public class UploadService extends IntentService {
             // Copy file to the same filesystem to enable atomic moves.
             FileUtils.copyFile(original, tempFile);
             if (!Hash.sha1Hex(tempFile).equals(sha1))
-                throw new IOException("SHA1 mismatch after copy");
+                Throw.ioeLog(TAG, "SHA1 mismatch after copy");
             // Atomic move to remove suffix.
             tempFile.renameTo(finalFile);
         } catch (IOException e) {
@@ -51,9 +56,10 @@ public class UploadService extends IntentService {
     }
 
     public static void startUpload(Context context) {
+        checkManifest(context);
+        checkBaseUrl(UploadService.baseUrl);
         Intent intent = new Intent(context, UploadService.class);
         intent.setAction(UploadService.ACTION_UPLOAD);
-        checkManifest(context);
         context.startService(intent);
     }
 
@@ -61,9 +67,8 @@ public class UploadService extends IntentService {
         return status;
     }
 
-    public static void checkManifest(Context context) {
-        if (!ManifestInfo.hasService(context, "org.yousense.upload.UploadService"))
-            Log.e(TAG, "You forgot to add <service android:name=\"org.yousense.upload.UploadService\"> to AndroidManifest.xml.");
+    public static String getBaseUrl() {
+        return baseUrl;
     }
 
     // Implementation
@@ -82,11 +87,11 @@ public class UploadService extends IntentService {
                 new StatusRequest(this).run();
             }
         } catch (IOException e) {
-            Log.e(TAG, "IOException", e);
+            DebugLog.eLog(TAG, "Upload failed with IOException", e);
         } catch (ConfigurationException e) {
-            Log.e(TAG, "ConfigurationException", e);
+            DebugLog.eLog(TAG, "Upload failed with ConfigurationException", e);
         } catch (ServerUnhappyException e) {
-            Log.e(TAG, "ServerUnhappyException", e);
+            DebugLog.eLog(TAG, "Upload failed with ServerUnhappyException", e);
         } finally {
             status = Status.IDLE;
         }
@@ -103,6 +108,26 @@ public class UploadService extends IntentService {
     public UploadService() {
         super("YouSense Upload Service");
         status = Status.IDLE;
+    }
+
+    private static void checkManifest(Context context) {
+        if (!ManifestInfo.hasService(context, "org.yousense.upload.UploadService"))
+            Throw.ceLog(TAG, "You forgot to add <service android:name=\"org.yousense.upload.UploadService\"> to AndroidManifest.xml.");
+    }
+
+    public static void checkBaseUrl(String baseUrl) throws ConfigurationException {
+        if (baseUrl == null)
+            Throw.ceLog(TAG, "Upload base URL is null.");
+        else {
+            if (!baseUrl.endsWith("/"))
+                Throw.ceLog(TAG, "Upload base URL must end with a /.");
+            try {
+                // Check that URL is valid before the first request is made.
+                new URL(baseUrl);
+            } catch (MalformedURLException e) {
+                Throw.ceLog(TAG, "Upload base URL is malformed.");
+            }
+        }
     }
 
     // Dangerous public API - if your are using it outside tests, you are probably doing something wrong.

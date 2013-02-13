@@ -7,6 +7,7 @@ import android.util.Log;
 import org.yousense.common.Files;
 import org.yousense.common.Gzip;
 import org.yousense.common.ManifestInfo;
+import org.yousense.common.Throw;
 import org.yousense.upload.UploadService;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public class GzipService extends IntentService {
 
     public static void checkManifest(Context context) {
         if (!ManifestInfo.hasService(context, "org.yousense.eventlog.GzipService"))
-            Log.e(TAG, "You forgot to add <service android:name=\"org.yousense.eventlog.GzipService\"> to AndroidManifest.xml.");
+            Throw.ce(TAG, "You forgot to add <service android:name=\"org.yousense.eventlog.GzipService\"> to AndroidManifest.xml.");
     }
 
     @Override
