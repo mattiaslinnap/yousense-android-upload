@@ -6,7 +6,8 @@ import android.content.Intent;
 import org.apache.commons.io.FileUtils;
 import org.yousense.common.*;
 import org.yousense.eventlog.DebugLog;
-import org.yousense.upload.exceptions.ServerUnhappyException;
+import org.yousense.upload.exceptions.ClientVersionException;
+import org.yousense.upload.exceptions.ServerException;
 import org.yousense.upload.net.FileRequest;
 import org.yousense.upload.net.StatusRequest;
 
@@ -25,12 +26,14 @@ public class UploadService extends IntentService {
 
     private static volatile Status status;
     private static String baseUrl;
+    private static ClientUpgradeNotifier notifier;
 
     // Public API
 
-    public static void init(String baseUrl) {
+    public static void init(String baseUrl, ClientUpgradeNotifier notifier) {
         checkBaseUrl(baseUrl);
         UploadService.baseUrl = baseUrl;
+        UploadService.notifier = notifier;
     }
 
     /**
@@ -75,10 +78,11 @@ public class UploadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        int uploaded = 0;
         try {
             status = Status.UPLOADING;
             DebugLog.dLog(TAG, "UploadService starting.");
-            // Workaround for HttpURLConnection connection pool is brokenness.
+            // Workaround for HttpURLConnection connection pool brokenness.
             System.setProperty("http.keepAlive", "false");
 
             if (ACTION_UPLOAD.equals(intent.getAction())) {
@@ -86,16 +90,22 @@ public class UploadService extends IntentService {
                 for (File file : sortedValidFiles(this)) {
                     new FileRequest(this, file).run();
                     file.delete();
+                    ++uploaded;
                 }
                 new StatusRequest(this).run();
             }
+        } catch (ClientVersionException e) {
+            DebugLog.eLog(TAG, "Request failed with ClientVersionException", e);
+            if (notifier != null)
+                notifier.upgradeRequired(e.url, e.whatsNew);
+        } catch (ServerException e) {
+            DebugLog.eLog(TAG, "Request failed with " + e.getMessage());
         } catch (IOException e) {
             DebugLog.eLog(TAG, "Request failed with IOException", e);
         } catch (ConfigurationException e) {
             DebugLog.eLog(TAG, "Request failed with ConfigurationException", e);
-        } catch (ServerUnhappyException e) {
-            DebugLog.eLog(TAG, "Request failed with ServerUnhappyException", e);
-        } finally {
+        }  finally {
+            DebugLog.dLog(TAG, String.format("UploadService done. Uploaded %d files.", uploaded));
             status = Status.IDLE;
         }
     }

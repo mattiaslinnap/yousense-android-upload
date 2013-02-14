@@ -37,8 +37,11 @@ public class GzipService extends IntentService {
             return;
 
         // It's safe to call DebugLog from here, as gzipping is not in the same thread as eventlog file rotation.
-        DebugLog.i(TAG, "GzipService starting.");
+        DebugLog.dLog(TAG, "GzipService starting.");
 
+        int deleted = 0;
+        int gzipped = 0;
+        int moved = 0;
         // For all closed log files, in filename order:
         // * delete empty files,
         // * gzip files with data.
@@ -46,12 +49,14 @@ public class GzipService extends IntentService {
             for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.CLOSED_FILTER)) {
                 if (file.length() == 0) {
                     file.delete();
+                    ++deleted;
                 } else {
                     Gzip.gzip(file);
+                    ++gzipped;
                 }
             }
         } catch (IOException e) {
-            DebugLog.e(TAG, "Error gzipping files.", e);
+            DebugLog.eLog(TAG, "Error gzipping files.", e);
             // First error terminates gzipping. Copying of the successful files can proceed.
         }
 
@@ -60,10 +65,12 @@ public class GzipService extends IntentService {
             for (File file : Files.listFilesSorted(EventLog.getLogDirectory(this), EventLog.GZIPPED_FILTER)) {
                 UploadService.copyFileForUpload(this, file);
                 file.delete();
+                ++moved;
             }
         } catch (IOException e) {
-            DebugLog.e(TAG, "Error moving files to upload directory.", e);
+            DebugLog.eLog(TAG, "Error moving files to upload directory.", e);
         }
+        DebugLog.dLog(TAG, String.format("GzipService done. Deleted %d, gzipped %d, moved %d files for upload.", deleted, gzipped, moved));
 
         // Start upload now if requested
         if (ACTION_GZIP_AND_UPLOAD.equals(intent.getAction())) {
