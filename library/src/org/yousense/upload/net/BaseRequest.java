@@ -74,8 +74,8 @@ public abstract class BaseRequest {
     }
 
     private void assertClientUpToDate(ResponseData response) throws ClientVersionException {
-        if (response.upgrade_required != null)
-            throw new ClientVersionException(response.upgrade_required.url, response.upgrade_required.whats_new);
+        if (response.update_required != null)
+            throw new ClientVersionException(response.update_required.url, response.update_required.whats_new);
     }
 
     private void assertNoResponseError(ResponseData response, int statusCode) throws ServerException {

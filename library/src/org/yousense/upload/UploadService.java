@@ -26,11 +26,11 @@ public class UploadService extends IntentService {
 
     private static volatile Status status;
     private static String baseUrl;
-    private static ClientUpgradeNotifier notifier;
+    private static ClientUpdateNotifier notifier;
 
     // Public API
 
-    public static void init(String baseUrl, ClientUpgradeNotifier notifier) {
+    public static void init(String baseUrl, ClientUpdateNotifier notifier) {
         checkBaseUrl(baseUrl);
         UploadService.baseUrl = baseUrl;
         UploadService.notifier = notifier;
@@ -97,7 +97,7 @@ public class UploadService extends IntentService {
         } catch (ClientVersionException e) {
             DebugLog.eLog(TAG, "Request failed with ClientVersionException", e);
             if (notifier != null)
-                notifier.upgradeRequired(e.url, e.whatsNew);
+                notifier.versionUpdateRequired(e.url, e.whatsNew);
         } catch (ServerException e) {
             DebugLog.eLog(TAG, "Request failed with " + e.getMessage());
         } catch (IOException e) {
