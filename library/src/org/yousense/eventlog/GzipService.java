@@ -37,6 +37,7 @@ public class GzipService extends IntentService {
             return;
 
         // It's safe to call DebugLog from here, as gzipping is not in the same thread as eventlog file rotation.
+        EventLog.append("app.gzip.start", null);
         DebugLog.dLog(TAG, "GzipService starting.");
 
         int deleted = 0;

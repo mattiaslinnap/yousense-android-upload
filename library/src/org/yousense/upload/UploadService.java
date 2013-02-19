@@ -6,6 +6,7 @@ import android.content.Intent;
 import org.apache.commons.io.FileUtils;
 import org.yousense.common.*;
 import org.yousense.eventlog.DebugLog;
+import org.yousense.eventlog.EventLog;
 import org.yousense.upload.exceptions.ClientVersionException;
 import org.yousense.upload.exceptions.ServerException;
 import org.yousense.upload.net.FileRequest;
@@ -81,6 +82,7 @@ public class UploadService extends IntentService {
         int uploaded = 0;
         try {
             status = Status.UPLOADING;
+            EventLog.append("app.upload.start", null);
             DebugLog.dLog(TAG, "UploadService starting.");
             // Workaround for HttpURLConnection connection pool brokenness.
             System.setProperty("http.keepAlive", "false");

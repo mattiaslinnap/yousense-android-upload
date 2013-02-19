@@ -65,12 +65,6 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
         return files[0];
     }
 
-    public void assertOneEmptyOpenFile(File dir) throws IOException {
-        File file = assertOneFile(dir);
-        assertEquals("Unexpected file contents: " + FileUtils.readFileToString(file, Files.UTF8), 0, file.length());
-        assertTrue(file.getAbsolutePath().endsWith(".open"));
-    }
-
     public File assertOneFlushedOpenFile(File dir) throws IOException {
         File file = assertOneFile(dir);
         assertTrue(file.length() > 0);
@@ -198,7 +192,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
         EventLog.append(FUNNY, null);
         EventLog.rotateAndStartGzip();
         Time.sleepIgnoreInterrupt(2000);
-        assertOneEmptyOpenFile(logdir);
+        assertOneFlushedOpenFile(logdir);  // Gzip writes a "app.gzip.start" event.
         File gzipped = assertOneGzippedLogFile(uploaddir);
         String contents = getContentsNoWhitespace(gzipped, true);
         assertHeaderAndEvents(contents, FUNNY, null, 1);
@@ -211,21 +205,17 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
         EventLog.append("test", null);
         EventLog.rotateAndStartGzip();
         Time.sleepIgnoreInterrupt(3000);
-        assertOneEmptyOpenFile(logdir);
+        assertOneFlushedOpenFile(logdir);  // Gzip writes a "app.gzip.start" event.
         assertTwoGzippedLogFiles(uploaddir);
     }
 
     public void testRotateOmitsEmptyFiles() throws IOException {
         EventLog.init(getContext().getApplicationContext(), null);
         EventLog.rotateAndStartGzip();
-        EventLog.rotateAndStartGzip();
-        EventLog.rotateAndStartGzip();
         EventLog.append("test", null);
         EventLog.rotateAndStartGzip();
-        EventLog.rotateAndStartGzip();
-        EventLog.rotateAndStartGzip();
         Time.sleepIgnoreInterrupt(3000);
-        assertOneEmptyOpenFile(logdir);
+        assertOneFlushedOpenFile(logdir);  // Gzip writes a "app.gzip.start" event.
         assertOneGzippedLogFile(uploaddir);
     }
 
