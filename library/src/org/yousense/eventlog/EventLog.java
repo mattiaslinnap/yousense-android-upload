@@ -6,10 +6,13 @@ import android.util.Log;
 import org.apache.commons.io.FileUtils;
 import org.yousense.common.Files;
 import org.yousense.common.Throw;
+import org.yousense.eventlog.data.Event;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * Main interface to the eventlog.
@@ -29,22 +32,28 @@ public class EventLog {
     final static FileFilter CLOSED_FILTER = new Files.SuffixFilter(CLOSED_SUFFIX, true);
     final static FileFilter GZIPPED_FILTER = new Files.SuffixFilter(GZIPPED_SUFFIX, true);
 
-    private static EventFileWriter writer;
     private static Context appContext;
+    private static EventFileWriter writer;
+    private static LatestCache latestCache;
 
     /**
      * Call this from Application.onCreate() to enable EventLog.
      */
-    public static synchronized void init(Context appContext) {
-        if (appContext != null)
+    public static synchronized void init(Context appContext, Map<String, Type> latestCachePersistTypes) {
+        if (appContext != null) {
             GzipService.checkManifest(appContext);
-        EventLog.appContext = appContext;
+            EventLog.appContext = appContext;
+            EventLog.latestCache = new LatestCache(appContext, getLatestCacheFile(appContext), latestCachePersistTypes);
+        } else {
+            EventLog.appContext = null;
+            EventLog.latestCache = null;
+        }
     }
 
     /**
      * Main logging call.
      */
-    public static synchronized boolean append(String tag, Object data) {
+    public static synchronized <T> boolean append(String tag, T data) {
         // NOTE: Make sure this method never tries to eventually write to EventLog again via Throw or DebugLog.
         if (appContext == null) {
             // EventLog is disabled.
@@ -67,6 +76,20 @@ public class EventLog {
         }
         Log.e(TAG, String.format("Failed to write event with tag %s %d times. Giving up.", tag, WRITE_ATTEMPTS));
         return false;
+    }
+
+    public static synchronized Event getLatest(String tag) {
+        if (latestCache != null)
+            return latestCache.get(tag);
+        else
+            return null;
+    }
+
+    public static synchronized long timeSince(String tag) {
+        if (latestCache != null)
+            return latestCache.timeSince(tag);
+        else
+            return LatestCache.INFINITY;
     }
 
     public static synchronized void rotateAndStartGzip() {
@@ -97,6 +120,13 @@ public class EventLog {
         return Files.getInternalSubdir(context, "yousense-eventlog");
     }
 
+    // Implementation
+
+    public static File getLatestCacheFile(Context context) {
+        // Outside EventLog.getLogDirectory(), don't want file handling and gzip mess.
+        return new File(context.getFilesDir(), "yousense-latestcache.json");
+    }
+
     private static void rotateWriter() {
         // NOTE: rotateWriter() is called from append().
         // Make sure this method never tries to eventually write to EventLog again via Throw or DebugLog.
@@ -122,7 +152,7 @@ public class EventLog {
 
         // Open new writer.
         try {
-            writer = new EventFileWriter(appContext);
+            writer = new EventFileWriter(appContext, latestCache);
         } catch (IOException e) {
             Log.e(TAG, "Failed to open new EventFileWriter", e);
         }
@@ -139,5 +169,7 @@ public class EventLog {
         writer = null;
         if (getLogDirectory(context).exists())
             FileUtils.deleteDirectory(getLogDirectory(context));
+        if (getLatestCacheFile(context).exists())
+            FileUtils.deleteQuietly(getLatestCacheFile(context));
     }
 }

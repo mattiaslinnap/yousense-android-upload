@@ -16,19 +16,23 @@ public class EventFileWriter {
     private Gson gson;
     private Event pendingHeader;
     private BufferedWriter openWriter;
+    private LatestCache latestCache;
 
-    public EventFileWriter(Context context) throws IOException {
+    public EventFileWriter(Context context, LatestCache latestCache) throws IOException {
         this.gson = new Gson();
-        this.pendingHeader = new Event(context, "header", new HeaderData(context));
+        this.pendingHeader = new Event<HeaderData>(context, "header", new HeaderData(context));
         this.openWriter = new BufferedWriter(new FileWriterWithEncoding(generateFilename(context, this.pendingHeader), Files.UTF8));
+        this.latestCache = latestCache;
     }
 
-    public synchronized void appendEvent(Context context, String tag, Object data) throws IOException {
+    public synchronized <T> void appendEvent(Context context, String tag, T data) throws IOException {
         if (pendingHeader != null) {
             writeNullSeparatedJson(pendingHeader);
             pendingHeader = null;
         }
-        writeNullSeparatedJson(new Event(context, tag, data));
+        Event<T> event = new Event<T>(context, tag, data);
+        writeNullSeparatedJson(event);
+        latestCache.put(event);
     }
 
     public synchronized void close() throws IOException {

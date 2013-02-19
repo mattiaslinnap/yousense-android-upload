@@ -15,6 +15,7 @@ import java.util.ArrayDeque;
 public class DebugLog {
     public static final int SCROLLBACK_LINES = 200;
     private static ArrayDeque<String> scrollback = new ArrayDeque<String>();
+    private static boolean disableEventLog;  // Disable EventLog.append() even if using dLog() or eLog() methods - for tests.
 
     // API for displaying latest messages
 
@@ -79,7 +80,7 @@ public class DebugLog {
     private static void appendToEventLogAndScrollback(String tag, int level, String message, Throwable tr, boolean logToEventLog) {
         DebugData data = new DebugData(Log.DEBUG, tag, message, null);
         appendToScrollback(data);
-        if (logToEventLog)
+        if (logToEventLog && (!disableEventLog))
             EventLog.append("debug.log", data);
     }
 
@@ -92,5 +93,14 @@ public class DebugLog {
             scrollback.removeFirst();
     }
 
+    // Dangerous public API - if your are using it outside tests, you are probably doing something wrong.
+
+    /**
+     * Do not call this outside of tests.
+     */
+
+    public static synchronized void disableAppendToEventLog() {
+        disableEventLog = true;
+    }
 
 }
