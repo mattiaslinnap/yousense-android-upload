@@ -117,7 +117,7 @@ public class UploadService extends IntentService {
     }
 
     public static File getUploadDirectory(Context context) throws IOException {
-        return Files.getExternalSubdir(context, "yousense-upload");
+        return Files.getInternalSubdir(context, "yousense-upload");
     }
 
     public UploadService() {
