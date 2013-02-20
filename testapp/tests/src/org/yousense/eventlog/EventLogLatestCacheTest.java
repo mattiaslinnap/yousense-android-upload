@@ -63,9 +63,9 @@ public class EventLogLatestCacheTest extends AndroidTestCase {
 
     public void testTimeSinceUnknownKey() {
         EventLog.init(getContext(), null, null);
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("nothere"));
+        assertEquals(Event.NEVER, EventLog.timeSince("nothere"));
         EventLog.append("test", new DataA("asd"));
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("nothere"));
+        assertEquals(Event.NEVER, EventLog.timeSince("nothere"));
     }
 
     public void testPersistAll() {
@@ -95,8 +95,8 @@ public class EventLogLatestCacheTest extends AndroidTestCase {
         EventLog.init(getContext(), null, null);
         assertNull(EventLog.getLatest("tag.a"));
         assertNull(EventLog.getLatest("tag.b"));
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("tag.a"));
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("tag.b"));
+        assertEquals(Event.NEVER, EventLog.timeSince("tag.a"));
+        assertEquals(Event.NEVER, EventLog.timeSince("tag.b"));
     }
 
     public void testPersistSome() {
@@ -113,7 +113,7 @@ public class EventLogLatestCacheTest extends AndroidTestCase {
         long delay = EventLog.timeSince("tag.a");
         assertTrue("Unexpected delay " + delay + " milliseconds.", 0 <= delay && delay <= 1000);
         assertNull(EventLog.getLatest("tag.b"));
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("tag.b"));
+        assertEquals(Event.NEVER, EventLog.timeSince("tag.b"));
     }
 
     public void testPersistLessDoesNotLoadOldKeys() {
@@ -132,7 +132,7 @@ public class EventLogLatestCacheTest extends AndroidTestCase {
         long delay = EventLog.timeSince("tag.b");
         assertTrue("Unexpected delay " + delay + " milliseconds.", 0 <= delay && delay <= 1000);
         assertNull(EventLog.getLatest("tag.a"));
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("tag.a"));
+        assertEquals(Event.NEVER, EventLog.timeSince("tag.a"));
     }
 
     public void testPersistMoreCannotLoadOldKeys() {
@@ -150,7 +150,7 @@ public class EventLogLatestCacheTest extends AndroidTestCase {
         long delay = EventLog.timeSince("tag.a");
         assertTrue("Unexpected delay " + delay + " milliseconds.", 0 <= delay && delay <= 1000);
         assertNull(EventLog.getLatest("tag.b"));
-        assertEquals(LatestCache.INFINITY, EventLog.timeSince("tag.b"));
+        assertEquals(Event.NEVER, EventLog.timeSince("tag.b"));
     }
 
     public void testFileMissing() {
