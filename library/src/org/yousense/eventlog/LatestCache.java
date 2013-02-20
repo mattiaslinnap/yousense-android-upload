@@ -1,15 +1,15 @@
 package org.yousense.eventlog;
 
-import android.content.Context;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.yousense.common.Files;
 import org.yousense.common.TypedJson;
-import org.yousense.common.TypedJson;
 import org.yousense.eventlog.data.Event;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,11 +19,9 @@ import java.util.Map;
  * All EventLog.append() calls write to LastCache, but persistence has to be enabled for each type in LastCache.init().
  */
 public class LatestCache {
-    public static final String FILENAME = "yousense-latestcache.json";
     public static final String TAG = EventLog.TAG;
 
     private Gson gson;
-    private Context context;
     private File file;
     private Map<String, Type> persistTypes;
     private Map<String, Event> cache;
@@ -31,9 +29,8 @@ public class LatestCache {
     /**
      * Types must be Gson TypeTokens for Event<T>.
      */
-    public LatestCache(Context context, File file, Map<String, Type> persistTypes) {
+    public LatestCache(File file, Map<String, Type> persistTypes) {
         this.gson = new Gson();
-        this.context = context;
         this.file = file;
         if (persistTypes != null)
             this.persistTypes = persistTypes;

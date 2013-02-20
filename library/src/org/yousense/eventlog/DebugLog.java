@@ -78,7 +78,7 @@ public class DebugLog {
     }
 
     private static void appendToEventLogAndScrollback(String tag, int level, String message, Throwable tr, boolean logToEventLog) {
-        DebugData data = new DebugData(Log.DEBUG, tag, message, null);
+        DebugData data = new DebugData(level, tag, message, tr);
         appendToScrollback(data);
         if (logToEventLog && (!disableEventLog))
             EventLog.append("debug.log", data);

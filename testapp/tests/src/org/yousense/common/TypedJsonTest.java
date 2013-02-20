@@ -14,12 +14,12 @@ public class TypedJsonTest extends AndroidTestCase {
     Gson gson = new Gson();
 
     public static class DataA {
-        public DataA(String a) { this.a = a; };
+        public DataA(String a) { this.a = a; }
         public String a;
     }
 
     public static class DataB {
-        public DataB(String b) { this.b = b; };
+        public DataB(String b) { this.b = b; }
         public String b;
     }
 

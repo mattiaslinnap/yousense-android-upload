@@ -12,15 +12,15 @@ public class Pretty {
 		if (intent == null)
 			return "Intent: NULL";
 		
-		StringBuffer sb = new StringBuffer("Intent:\n");
+		StringBuilder sb = new StringBuilder("Intent:\n");
 		if (intent.getAction() != null)
-			sb.append("action=" + intent.getAction() + "\n");
+			sb.append("action=").append(intent.getAction()).append("\n");
 		if (intent.getCategories() != null)
-			sb.append("categories=[" + StringUtils.join(intent.getCategories(), ", ") + "]\n");
+			sb.append("categories=[").append(StringUtils.join(intent.getCategories(), ", ")).append("]\n");
 		if (intent.getData() != null)
-			sb.append("data=" + intent.getDataString() + "\n");
+			sb.append("data=").append(intent.getDataString()).append("\n");
 		if (intent.getComponent() != null)
-			sb.append("component=" + intent.getComponent().flattenToString() + "\n");		
+			sb.append("component=").append(intent.getComponent().flattenToString()).append("\n");
 		if (intent.getExtras() != null) {
 			sb.append("extras:\n");
 			sb.append(prettyPrintBundle(intent.getExtras()));
@@ -32,9 +32,9 @@ public class Pretty {
 		if (bundle == null)
 			return "Bundle: NULL";
 		
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (String key : new TreeSet<String>(bundle.keySet())) { // iterate in sorted order
-			sb.append(key + "=" + bundle.get(key).toString() + "\n");
+			sb.append(key).append("=").append(bundle.get(key).toString()).append("\n");
 		}
 		return sb.toString();
 	}

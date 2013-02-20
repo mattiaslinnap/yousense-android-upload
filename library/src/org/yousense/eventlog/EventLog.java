@@ -45,7 +45,7 @@ public class EventLog {
             GzipService.checkManifest(appContext);
             EventLog.appContext = appContext;
             EventLog.listener = listener;
-            EventLog.latestCache = new LatestCache(appContext, getLatestCacheFile(appContext), latestCachePersistTypes);
+            EventLog.latestCache = new LatestCache(getLatestCacheFile(appContext), latestCachePersistTypes);
         } else {
             EventLog.appContext = null;
             EventLog.listener = null;
