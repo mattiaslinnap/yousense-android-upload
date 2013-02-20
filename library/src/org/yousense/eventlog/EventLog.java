@@ -33,19 +33,22 @@ public class EventLog {
     final static FileFilter GZIPPED_FILTER = new Files.SuffixFilter(GZIPPED_SUFFIX, true);
 
     private static Context appContext;
+    private static EventListener listener;
     private static EventFileWriter writer;
     private static LatestCache latestCache;
 
     /**
      * Call this from Application.onCreate() to enable EventLog.
      */
-    public static synchronized void init(Context appContext, Map<String, Type> latestCachePersistTypes) {
+    public static synchronized void init(Context appContext, EventListener listener, Map<String, Type> latestCachePersistTypes) {
         if (appContext != null) {
             GzipService.checkManifest(appContext);
             EventLog.appContext = appContext;
+            EventLog.listener = listener;
             EventLog.latestCache = new LatestCache(appContext, getLatestCacheFile(appContext), latestCachePersistTypes);
         } else {
             EventLog.appContext = null;
+            EventLog.listener = null;
             EventLog.latestCache = null;
         }
     }
@@ -53,29 +56,35 @@ public class EventLog {
     /**
      * Main logging call.
      */
-    public static synchronized <T> boolean append(String tag, T data) {
+    public static synchronized <T> Event<T> append(String tag, T data) {
         // NOTE: Make sure this method never tries to eventually write to EventLog again via Throw or DebugLog.
         if (appContext == null) {
             // EventLog is disabled.
-            return false;
+            return null;
         }
 
         if (writer == null)
             rotateWriter();
 
-        for (int i = 0; i < WRITE_ATTEMPTS; ++i) {
+        Event<T> written = null;
+        for (int i = 0; i < WRITE_ATTEMPTS && written == null; ++i) {
             try {
                 if (writer == null)
                     throw new IOException("EventFileWriter is null, cannot write");
-                writer.appendEvent(appContext, tag, data);
-                return true;  // Success
+                written = writer.appendEvent(appContext, tag, data);
             } catch (IOException e) {
                 Log.e(TAG, String.format("Failed to write event with tag %s, maybe retrying.", tag), e);
                 rotateWriter();
             }
         }
-        Log.e(TAG, String.format("Failed to write event with tag %s %d times. Giving up.", tag, WRITE_ATTEMPTS));
-        return false;
+        if (written != null) {
+            if (listener != null)
+                listener.eventAdded(written);
+            return written;
+        } else {
+            Log.e(TAG, String.format("Failed to write event with tag %s %d times. Giving up.", tag, WRITE_ATTEMPTS));
+            return null;
+        }
     }
 
     public static synchronized Event getLatest(String tag) {
@@ -89,7 +98,7 @@ public class EventLog {
         if (latestCache != null)
             return latestCache.timeSince(tag);
         else
-            return LatestCache.INFINITY;
+            return Event.NEVER;
     }
 
     public static synchronized void rotateAndStartGzip() {

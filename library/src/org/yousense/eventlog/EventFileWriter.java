@@ -25,7 +25,7 @@ public class EventFileWriter {
         this.latestCache = latestCache;
     }
 
-    public synchronized <T> void appendEvent(Context context, String tag, T data) throws IOException {
+    public synchronized <T> Event<T> appendEvent(Context context, String tag, T data) throws IOException {
         if (pendingHeader != null) {
             writeNullSeparatedJson(pendingHeader);
             pendingHeader = null;
@@ -33,6 +33,7 @@ public class EventFileWriter {
         Event<T> event = new Event<T>(context, tag, data);
         writeNullSeparatedJson(event);
         latestCache.put(event);
+        return event;
     }
 
     public synchronized void close() throws IOException {

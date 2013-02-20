@@ -35,7 +35,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void setUp() throws IOException {
-        EventLog.init(null, null);
+        EventLog.init(null, null, null);
         DebugLog.disableAppendToEventLog();
         EventLog.resetWriterAndDeleteLogDirectory(getContext());
         UploadService.deleteUploadDirectory(getContext());
@@ -154,13 +154,13 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void testInitDoesNotWrite() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         assertNoFiles(logdir);
         assertNoFiles(uploaddir);
     }
 
     public void testAppendIsFlushedToOpenFile() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         EventLog.append(FUNNY, null);
         assertNoFiles(uploaddir);
         File open = assertOneFlushedOpenFile(logdir);
@@ -169,7 +169,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void testTwoAppends() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         EventLog.append("test", null);
         EventLog.append("test", null);
         assertNoFiles(uploaddir);
@@ -179,7 +179,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void testAppendWithData() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         EventLog.append("test", new TestData());
         assertNoFiles(uploaddir);
         File open = assertOneFlushedOpenFile(logdir);
@@ -188,7 +188,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void testAppendRotate() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         EventLog.append(FUNNY, null);
         EventLog.rotateAndStartGzip();
         Time.sleepIgnoreInterrupt(2000);
@@ -199,7 +199,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void testRotateTwice() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         EventLog.append("test", null);
         EventLog.rotateAndStartGzip();
         EventLog.append("test", null);
@@ -210,7 +210,7 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
     }
 
     public void testRotateOmitsEmptyFiles() throws IOException {
-        EventLog.init(getContext().getApplicationContext(), null);
+        EventLog.init(getContext().getApplicationContext(), null, null);
         EventLog.rotateAndStartGzip();
         EventLog.append("test", null);
         EventLog.rotateAndStartGzip();

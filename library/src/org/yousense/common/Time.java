@@ -43,6 +43,24 @@ public class Time {
     	return isoFormat(new Date());
     }
 
+    /**
+     * Returns strings like "13h 54min".
+     */
+    public static String hoursMinutesDeltaFormat(long millis) {
+        StringBuilder sb = new StringBuilder();
+        if (millis < 0) {
+            sb.append("-");
+            millis = -millis;
+        }
+        long hours = millis / (3600*1000);
+        long minutes = (millis / (1000 * 60)) % 60;
+        sb.append(hours);
+        sb.append("h ");
+        sb.append(minutes);
+        sb.append("min");
+        return sb.toString();
+    }
+
     public static void sleepIgnoreInterrupt(long millis) {
         try {
             Thread.sleep(millis);

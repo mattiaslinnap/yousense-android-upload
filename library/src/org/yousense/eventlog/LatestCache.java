@@ -19,7 +19,6 @@ import java.util.Map;
  * All EventLog.append() calls write to LastCache, but persistence has to be enabled for each type in LastCache.init().
  */
 public class LatestCache {
-    public static final long INFINITY = 3155692597470L;  // 100 years in milliseconds
     public static final String FILENAME = "yousense-latestcache.json";
     public static final String TAG = EventLog.TAG;
 
@@ -56,18 +55,10 @@ public class LatestCache {
 
     public synchronized long timeSince(String tag) {
         Event event = get(tag);
-        if (event == null) {
-            return INFINITY;
-        } else {
-            long now = System.currentTimeMillis();
-            if (now < event.time_system) {
-                // Event occurred in the future?
-                // Should never happen. User has probably set clock backwards - and therefore can't know real value.
-                return INFINITY;
-            } else {
-                return now - event.time_system;
-            }
-        }
+        if (event == null)
+            return Event.NEVER;
+        else
+            return event.timeSince();
     }
 
     // Implementation
