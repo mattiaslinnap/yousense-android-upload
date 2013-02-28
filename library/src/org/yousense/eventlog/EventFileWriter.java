@@ -12,6 +12,29 @@ import java.io.File;
 import java.io.IOException;
 
 public class EventFileWriter {
+    public static final int FILENAME_VERSION_CODE = 1;
+
+    /* OLD FILENAME FORMATS:
+    Version 1-4:
+    String filename = String.format("%s-vn%02d-%s-r%04d-f%08d-e%010d-%s" + EventLog.OPEN_SUFFIX,
+                hdata.appid,
+                FILENAME_VERSION_CODE,
+                hdata.userid,
+                hdata.counter_restart,
+                hdata.counter_file,
+                header.counter_event,
+                Time.timestampNoSpacesWithMilliseconds(header.time_system));
+
+    Version 5:
+    String filename = String.format("%s-vn%02d-%s-r%04d-f%08d-e%010d-%s" + EventLog.OPEN_SUFFIX,
+                hdata.appid,
+                FILENAME_VERSION_CODE,
+                hdata.userid,
+                hdata.counter_restart,
+                hdata.counter_file,
+                header.counter_event,
+                Time.timestampNoSpacesWithMilliseconds(header.time_system));
+    */
 
     private Gson gson;
     private Event pendingHeader;
@@ -49,9 +72,9 @@ public class EventFileWriter {
         // 6 digits (1M) for number of files,
         // 10 digits (100M) for number of events.
         // App version comes first, so that new filename formats will sort after the old ones.
-        String filename = String.format("%s-v%03d-%s-r%04d-f%08d-e%010d-%s" + EventLog.OPEN_SUFFIX,
+        String filename = String.format("%s-vn%02d-%s-r%04d-f%08d-e%010d-%s" + EventLog.OPEN_SUFFIX,
                 hdata.appid,
-                hdata.app_version_code,
+                FILENAME_VERSION_CODE,
                 hdata.userid,
                 hdata.counter_restart,
                 hdata.counter_file,
