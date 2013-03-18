@@ -88,9 +88,9 @@ public class DebugLog {
         String line = String.format("%s: %s", Time.timeOnlyWithMilliseconds(), data.message);
         if (data.stacktrace != null)
             line += "\n" + data.stacktrace;
-        scrollback.addLast(line);
+        scrollback.addFirst(line);
         while (scrollback.size() > SCROLLBACK_LINES)
-            scrollback.removeFirst();
+            scrollback.removeLast();
     }
 
     // Dangerous public API - if your are using it outside tests, you are probably doing something wrong.

@@ -80,14 +80,15 @@ public class UploadService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         int uploaded = 0;
+        boolean success = false;
         try {
-            status = Status.UPLOADING;
-            EventLog.append("app.upload.start", null);
-            DebugLog.dLog(TAG, "UploadService starting.");
-            // Workaround for HttpURLConnection connection pool brokenness.
-            System.setProperty("http.keepAlive", "false");
-
             if (ACTION_UPLOAD.equals(intent.getAction())) {
+                status = Status.UPLOADING;
+                EventLog.append("app.upload.start", null);
+                DebugLog.dLog(TAG, "UploadService starting.");
+                // Workaround for HttpURLConnection connection pool brokenness.
+                System.setProperty("http.keepAlive", "false");
+
                 new StatusRequest(this).run();
                 for (File file : sortedValidFiles(this)) {
                     new FileRequest(this, file).run();
@@ -95,6 +96,7 @@ public class UploadService extends IntentService {
                     ++uploaded;
                 }
                 new StatusRequest(this).run();
+                success = true;
             }
         } catch (ClientVersionException e) {
             DebugLog.eLog(TAG, "Request failed with ClientVersionException", e);
@@ -106,8 +108,14 @@ public class UploadService extends IntentService {
             DebugLog.eLog(TAG, "Request failed with IOException", e);
         } catch (ConfigurationException e) {
             DebugLog.eLog(TAG, "Request failed with ConfigurationException", e);
-        }  finally {
-            DebugLog.dLog(TAG, String.format("UploadService done. Uploaded %d files.", uploaded));
+        } finally {
+            if (success) {
+                EventLog.append("app.upload.success", null);
+                DebugLog.dLog(TAG, String.format("UploadService successful. Uploaded %d files.", uploaded));
+            } else {
+                EventLog.append("app.upload.fail", null);
+                DebugLog.dLog(TAG, String.format("UploadService failed. Uploaded %d files.", uploaded));
+            }
             status = Status.IDLE;
         }
     }
