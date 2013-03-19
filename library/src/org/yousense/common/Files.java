@@ -15,14 +15,6 @@ public class Files {
     public static final String UTF8 = "UTF-8";
 
     /**
-     * Returns a subdirectory of the app's data location on EXTERNAL storage.
-     * Creates it if necesssary and checks for write permissions.
-     */
-    public static File getExternalSubdir(Context context, String name) throws IOException {
-        return getSubdir(context.getExternalFilesDir(null), name);
-    }
-
-    /**
      * Returns a subdirectory of the app's data location on INTERNAL storage.
      * Creates it if necesssary and checks for write permissions.
      */

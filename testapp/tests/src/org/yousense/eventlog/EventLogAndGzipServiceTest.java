@@ -24,16 +24,6 @@ public class EventLogAndGzipServiceTest extends AndroidTestCase {
         String key = FUNNY;
     }
 
-    public void testExternalStorageWritable() {
-        File external = getContext().getExternalFilesDir(null);
-        assertNotNull(external);
-        assertTrue(external.exists());
-        assertTrue(external.isDirectory());
-        assertTrue(external.canRead());
-        assertTrue(external.canWrite());
-        assertTrue(external.canExecute());
-    }
-
     public void setUp() throws IOException {
         EventLog.init(null, null, null);
         DebugLog.disableAppendToEventLog();
