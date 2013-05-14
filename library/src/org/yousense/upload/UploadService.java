@@ -3,6 +3,7 @@ package org.yousense.upload;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
 import org.apache.commons.io.FileUtils;
 import org.yousense.common.*;
 import org.yousense.eventlog.DebugLog;
@@ -79,6 +80,10 @@ public class UploadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        PowerManager.WakeLock wakeLock = ((PowerManager)getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, AppId.TAG + "-UploadService");
+        wakeLock.setReferenceCounted(false);
+        wakeLock.acquire();
+
         int uploaded = 0;
         boolean success = false;
         try {
@@ -117,6 +122,7 @@ public class UploadService extends IntentService {
                 DebugLog.dLog(TAG, String.format("UploadService failed. Uploaded %d files.", uploaded));
             }
             status = Status.IDLE;
+            wakeLock.release();
         }
     }
 
