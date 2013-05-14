@@ -76,7 +76,7 @@ public class UserId {
         return newId;
     }
 
-    private static synchronized String androidId(Context context) {
+    public static synchronized String androidId(Context context) {
         String aid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         // Known duplicate ID: http://code.google.com/p/android/issues/detail?id=10603
         if (aid == null || "9774d56d682e549c".equals(aid)) {
