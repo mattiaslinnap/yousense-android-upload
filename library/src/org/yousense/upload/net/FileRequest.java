@@ -31,6 +31,7 @@ public class FileRequest extends BaseRequest {
 
         // Write file into POST request
         FileUtils.copyFile(upload, connection.getOutputStream());
+        connection.getOutputStream().flush();
     }
 
 
