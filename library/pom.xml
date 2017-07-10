@@ -4,7 +4,7 @@
     <groupId>org.yousense</groupId>
     <artifactId>yousense-upload</artifactId>
     <version>1.0.0</version>
-	<packaging>apklib</packaging> 
+	<packaging>aar</packaging> 
     <name>Yousense Upload</name>
 
     <dependencies>
